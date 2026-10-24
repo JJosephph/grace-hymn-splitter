@@ -8,8 +8,30 @@ if (-not $Version) {
     throw "VERSION file is empty."
 }
 
+$PythonExe = $null
+$PythonArgs = @()
+
+foreach ($Candidate in @("python", "py")) {
+    $Command = Get-Command $Candidate -ErrorAction SilentlyContinue
+    if (-not $Command) {
+        continue
+    }
+    & $Command.Source -c "import sys; print(sys.executable)" *> $null
+    if ($LASTEXITCODE -eq 0) {
+        $PythonExe = $Command.Source
+        break
+    }
+}
+
+if (-not $PythonExe) {
+    throw "A working Python 3.10+ installation was not found."
+}
+
 Write-Host "Building Windows portable release v$Version ..."
-py -m PyInstaller --noconfirm --clean (Join-Path $ProjectDir "grace_hymn_splitter.spec")
+& $PythonExe @PythonArgs -m PyInstaller --noconfirm --clean (Join-Path $ProjectDir "grace_hymn_splitter.spec")
+if ($LASTEXITCODE -ne 0) {
+    throw "PyInstaller failed with exit code $LASTEXITCODE."
+}
 
 $BuiltExe = Join-Path $ProjectDir "dist\GraceHymnSplitter.exe"
 if (-not (Test-Path -LiteralPath $BuiltExe)) {
