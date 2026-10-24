@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 build/
 dist/
+release/
 user_settings.json
 outputs/_inspect/
 outputs/_auto_test/

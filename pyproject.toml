@@ -10,10 +10,14 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "WangYufan" }]
+urls = { Homepage = "https://github.com/JJosephph/grace-hymn-splitter", Repository = "https://github.com/JJosephph/grace-hymn-splitter" }
 dependencies = [
   "Pillow>=11.0,<12",
   "pywebview>=6.2,<7",
 ]
+
+[project.optional-dependencies]
+build = ["pyinstaller>=6.10,<7"]
 
 [project.scripts]
 grace-hymn-splitter = "hymn_splitter.gui:main"

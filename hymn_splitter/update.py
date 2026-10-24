@@ -11,7 +11,7 @@ from .service import current_version
 
 
 DEFAULT_UPDATE_URL = (
-    "https://api.github.com/repos/WangYufan/"
+    "https://api.github.com/repos/JJosephph/"
     "grace-hymn-splitter/releases/latest"
 )
 

@@ -53,14 +53,23 @@
 
 ## 快速开始
 
-### 方式一：双击启动
+### 方式一：下载免安装版（推荐）
+
+1. 打开本项目的 GitHub Releases 页面。
+2. 下载 `GraceHymnSplitter-v0.2.0-win64.exe`。
+3. 双击运行，不需要安装 Python。
+4. 在窗口里选择歌谱、填写诗歌名、选择输出目录，然后点击“开始制作”。
+
+Windows 10/11 通常已经带有 Edge WebView2 运行环境。个别精简系统如果提示缺少 WebView2，安装微软官方 WebView2 Runtime 后即可使用。
+
+### 方式二：从源码双击启动
 
 1. 安装 Python 3.10 或更高版本。
 2. 双击项目目录里的 `run.bat`。
 3. 第一次启动会自动安装 `Pillow` 和 `pywebview`。
 4. 在窗口里选择歌谱、填写诗歌名、选择输出目录，然后点击“开始制作”。
 
-### 方式二：命令行启动
+### 方式三：命令行启动
 
 ```powershell
 cd E:\PROJ\hymn-splitter
@@ -135,12 +144,12 @@ py run.py build configs/新歌谱.json
 
 ```json
 {
-  "update_url": "https://api.github.com/repos/WangYufan/grace-hymn-splitter/releases/latest",
-  "project_url": "https://github.com/WangYufan/grace-hymn-splitter"
+  "update_url": "https://api.github.com/repos/JJosephph/grace-hymn-splitter/releases/latest",
+  "project_url": "https://github.com/JJosephph/grace-hymn-splitter"
 }
 ```
 
-发布到 GitHub Releases 后，把上面的仓库地址改成实际地址即可。也可以临时通过环境变量覆盖：
+发布到 GitHub Releases 后，上面的地址就是实际更新源。也可以临时通过环境变量覆盖：
 
 ```powershell
 $env:HYMN_SPLITTER_UPDATE_URL="https://api.github.com/repos/你的账号/你的仓库/releases/latest"
@@ -163,6 +172,8 @@ hymn-splitter/
   docs/examples/       切图示例
   run.py               双击/命令行入口
   run.bat              Windows 双击启动脚本
+  grace_hymn_splitter.spec  PyInstaller 免安装版配置
+  build_windows.ps1    Windows 免安装版构建脚本
   requirements.txt     Python 依赖
   app_config.json      更新地址配置
   LICENSE             MIT 开源许可
@@ -183,7 +194,18 @@ py run.py
 py -m compileall -q hymn_splitter run.py
 ```
 
-项目是普通 Python 项目，后续可以使用 PyInstaller 打包成 Windows 单文件程序。
+构建 Windows 免安装版：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File build_windows.ps1
+```
+
+构建结果会生成在 `release/` 目录，包含：
+
+- `GraceHymnSplitter-v0.2.0-win64.exe`
+- `GraceHymnSplitter-v0.2.0-win64.exe.sha256`
+
+推送形如 `v0.2.0` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
 
 ## 开源说明
 
