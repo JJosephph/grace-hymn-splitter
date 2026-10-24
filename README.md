@@ -68,32 +68,25 @@
 
 ## 快速开始
 
-### 方式一：下载安装版（推荐）
+### 方式一：下载安装版
 
 1. 打开本项目的 GitHub Releases 页面。
-2. 下载 `GraceHymnSplitter-v0.2.5-setup-win64.exe`。
+2. 下载 `GraceHymnSplitter-v0.2.6-setup-win64.exe`。
 3. 双击安装，按中文向导完成即可。默认安装到当前用户目录，不需要管理员权限；也可以点击“浏览”安装到 D 盘。
 4. 安装完成后启动软件，在窗口里选择歌谱、确认诗歌名和输出目录，然后点击“开始制作”。
 
-安装版会在安装目录下建立独立的“输出”文件夹。如果安装到 D 盘，安装程序会在所选位置下建立“恩典歌谱转换PPT大图”产品目录，不会把文件散落在磁盘根目录。
+软件默认在安装目录下建立并使用独立的“输出”文件夹，用户也可以在主界面中改成其他目录。如果安装到 D 盘，安装程序会在所选位置下建立“恩典歌谱转换PPT大图”产品目录，不会把文件散落在磁盘根目录。
 
 Windows 10/11 通常已经带有 Edge WebView2 运行环境。个别精简系统如果提示缺少 WebView2，安装微软官方 WebView2 Runtime 后即可使用。
 
-### 方式二：下载免安装版
-
-1. 打开本项目的 GitHub Releases 页面。
-2. 下载 `GraceHymnSplitter-v0.2.5-win64-portable.exe`。
-3. 双击运行，不需要安装 Python。
-4. 免安装版不会创建开始菜单和桌面快捷方式，适合放在 U 盘或临时使用。
-
-### 方式三：从源码双击启动
+### 方式二：从源码双击启动
 
 1. 安装 Python 3.10 或更高版本。
 2. 双击项目目录里的 `run.bat`。
 3. 第一次启动会自动安装 `Pillow` 和 `pywebview`。
 4. 在窗口里选择歌谱、填写诗歌名、选择输出目录，然后点击“开始制作”。
 
-### 方式四：命令行启动
+### 方式三：命令行启动
 
 ```powershell
 cd E:\PROJ\hymn-splitter
@@ -202,7 +195,7 @@ hymn-splitter/
   run.py               双击/命令行入口
   run.bat              Windows 双击启动脚本
   grace_hymn_splitter.spec  PyInstaller 打包配置
-  build_windows.ps1    Windows 安装版和免安装版构建脚本
+  build_windows.ps1    Windows 安装版构建脚本
   requirements.txt     Python 依赖
   app_config.json      更新地址配置
   LICENSE             MIT 开源许可
@@ -227,7 +220,7 @@ py run.py
 py -m compileall -q hymn_splitter run.py
 ```
 
-构建 Windows 安装版和免安装版：
+构建 Windows 安装版：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File build_windows.ps1
@@ -237,12 +230,10 @@ powershell -ExecutionPolicy Bypass -File build_windows.ps1
 
 构建结果会生成在 `release/` 目录，包含：
 
-- `GraceHymnSplitter-v0.2.5-setup-win64.exe`（推荐下载）
-- `GraceHymnSplitter-v0.2.5-setup-win64.exe.sha256`
-- `GraceHymnSplitter-v0.2.5-win64-portable.exe`
-- `GraceHymnSplitter-v0.2.5-win64-portable.exe.sha256`
+- `GraceHymnSplitter-v0.2.6-setup-win64.exe`（推荐下载）
+- `GraceHymnSplitter-v0.2.6-setup-win64.exe.sha256`
 
-推送形如 `v0.2.5` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
+推送形如 `v0.2.6` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
 
 ## 开源说明
 

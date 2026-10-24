@@ -38,7 +38,7 @@ jobs:
         shell: powershell
         run: choco install innosetup --no-progress -y
 
-      - name: Build Windows installer and portable executable
+      - name: Build Windows installer
         shell: powershell
         run: .\build_windows.ps1
 
@@ -46,6 +46,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            release/*.exe
-            release/*.sha256
+            release/GraceHymnSplitter-*-setup-win64.exe
+            release/GraceHymnSplitter-*-setup-win64.exe.sha256
           generate_release_notes: true

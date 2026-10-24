@@ -98,11 +98,15 @@ function parseSongName(fileName: string) {
   return { number: match[1], title: match[2].trim() }
 }
 
-function normalizeImage(path: string, name?: string): SelectedImage {
+function normalizeImage(
+  path: string,
+  name?: string,
+  url?: string,
+): SelectedImage {
   return {
     path,
     name: name || path.split(/[\\/]/).pop() || "歌谱图片",
-    url: fileUrl(path),
+    url: url || fileUrl(path),
   }
 }
 
@@ -186,7 +190,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
       return
     }
     if (response.path) {
-      get().setImage(normalizeImage(response.path))
+      get().setImage(
+        normalizeImage(response.path, undefined, response.url),
+      )
     }
   },
 

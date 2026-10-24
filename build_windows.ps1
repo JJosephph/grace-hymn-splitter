@@ -51,7 +51,7 @@ if (Test-Path -LiteralPath $FrontendDir) {
     }
 }
 
-Write-Host "Building Windows portable release v$Version ..."
+Write-Host "Building Windows application v$Version ..."
 & $PythonExe @PythonArgs (Join-Path $ProjectDir "tools\build_brand_assets.py")
 if ($LASTEXITCODE -ne 0) {
     throw "Brand asset build failed with exit code $LASTEXITCODE."
@@ -68,17 +68,11 @@ if (-not (Test-Path -LiteralPath $BuiltExe)) {
 
 $ReleaseDir = Join-Path $ProjectDir "release"
 New-Item -ItemType Directory -Force -Path $ReleaseDir | Out-Null
-
-$ReleaseName = "GraceHymnSplitter-v$Version-win64-portable.exe"
-$ReleaseExe = Join-Path $ReleaseDir $ReleaseName
-Copy-Item -LiteralPath $BuiltExe -Destination $ReleaseExe -Force
-
-$Hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $ReleaseExe).Hash.ToLowerInvariant()
-$ChecksumFile = Join-Path $ReleaseDir "$ReleaseName.sha256"
-"$Hash  $ReleaseName" | Set-Content -LiteralPath $ChecksumFile -Encoding ascii
-
-Write-Host "Portable release built: $ReleaseExe"
-Write-Host "Portable SHA256: $Hash"
+Get-ChildItem -LiteralPath $ReleaseDir -File |
+    Where-Object {
+        $_.Name -match '^GraceHymnSplitter-v\d+\.\d+\.\d+-(setup-win64|win64|win64-portable)\.exe(\.sha256)?$'
+    } |
+    Remove-Item -Force
 
 $InnoCandidates = @()
 $InnoCommand = Get-Command iscc -ErrorAction SilentlyContinue

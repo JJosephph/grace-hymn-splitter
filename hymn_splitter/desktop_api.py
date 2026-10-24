@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import io
 import json
 import os
 import threading
@@ -7,6 +9,8 @@ import time
 import webbrowser
 from pathlib import Path
 from typing import Any
+
+from PIL import Image, ImageOps
 
 from .service import (
     APP_DIR,
@@ -19,6 +23,42 @@ from .update import check_for_updates
 
 def _file_uri(path: str | Path) -> str:
     return Path(path).resolve().as_uri()
+
+
+def _thumbnail_data_uri(path: str | Path, max_size: int = 1200) -> str:
+    """Return a compact browser-safe preview without exposing local file URLs."""
+    source = Path(path).resolve()
+    if not source.is_file():
+        return ""
+
+    try:
+        size = max(256, min(2048, int(max_size or 1200)))
+    except (TypeError, ValueError):
+        size = 1200
+
+    try:
+        with Image.open(source) as image:
+            image = ImageOps.exif_transpose(image)
+            image.thumbnail((size, size), Image.Resampling.LANCZOS)
+            buffer = io.BytesIO()
+            if image.mode in {"RGBA", "LA"} or (
+                image.mode == "P" and "transparency" in image.info
+            ):
+                image.convert("RGBA").save(buffer, format="PNG", optimize=True)
+                mime_type = "image/png"
+            else:
+                image.convert("RGB").save(
+                    buffer,
+                    format="JPEG",
+                    quality=82,
+                    optimize=True,
+                )
+                mime_type = "image/jpeg"
+    except Exception:
+        return ""
+
+    encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
+    return f"data:{mime_type};base64,{encoded}"
 
 
 class DesktopApi:
@@ -42,12 +82,16 @@ class DesktopApi:
     # ---------- bootstrap and dialogs ----------
     def get_bootstrap(self) -> dict[str, Any]:
         settings = self._load_settings()
+        saved_output_root = str(settings.get("output_root") or "").strip()
+        output_root = (
+            saved_output_root
+            if settings.get("output_root_custom") and saved_output_root
+            else str(DEFAULT_OUTPUT_DIR)
+        )
         return {
             "ok": True,
             "version": current_version(),
-            "default_output_root": str(
-                Path(settings.get("output_root") or DEFAULT_OUTPUT_DIR).resolve()
-            ),
+            "default_output_root": str(Path(output_root).resolve()),
             "settings": settings,
             "project_dir": str(APP_DIR),
             "brand": {
@@ -74,7 +118,7 @@ class DesktopApi:
             return {
                 "ok": True,
                 "path": path or "",
-                "url": _file_uri(path) if path else "",
+                "url": _thumbnail_data_uri(path, 960) if path else "",
                 "name": name,
             }
         except Exception as error:
@@ -91,7 +135,10 @@ class DesktopApi:
         try:
             files = ((event or {}).get("dataTransfer") or {}).get("files") or []
             if not files:
-                return {"ok": False, "error": "没有读取到拖入的图片。"}
+                return {
+                    "ok": False,
+                    "error": "没有读取到拖入的图片。请点击“选择图片”重试。",
+                }
             path = self._resolve_drop_path(files[0])
             if path is None:
                 return {"ok": False, "error": "无法读取拖入图片的路径。"}
@@ -100,9 +147,22 @@ class DesktopApi:
             return {
                 "ok": True,
                 "path": str(path),
-                "url": _file_uri(path),
+                "url": _thumbnail_data_uri(path, 960),
                 "name": path.name,
             }
+        except Exception as error:
+            return {"ok": False, "error": str(error)}
+
+    def get_thumbnail(
+        self,
+        path: str,
+        max_size: int = 1200,
+    ) -> dict[str, Any]:
+        try:
+            url = _thumbnail_data_uri(path, max_size)
+            if not url:
+                return {"ok": False, "error": "无法读取图片预览。"}
+            return {"ok": True, "url": url}
         except Exception as error:
             return {"ok": False, "error": str(error)}
 
@@ -171,7 +231,7 @@ class DesktopApi:
                 {
                     "name": Path(path).name,
                     "path": path,
-                    "url": _file_uri(path),
+                    "url": "",
                 }
                 for path in result.get("outputs", [])
             ]
@@ -192,9 +252,17 @@ class DesktopApi:
                 result=public_result,
             )
             saved_output_root = output_root or str(Path(public_result["output_dir"]).parent)
+            try:
+                output_root_is_custom = (
+                    Path(saved_output_root).expanduser().resolve()
+                    != DEFAULT_OUTPUT_DIR.resolve()
+                )
+            except Exception:
+                output_root_is_custom = True
             self._save_settings(
                 {
                     "output_root": saved_output_root,
+                    "output_root_custom": output_root_is_custom,
                     "bold_mode": bold_mode,
                     "keep_metadata_first_page": keep_metadata_first_page,
                     "make_chorus_page": make_chorus_page,
@@ -332,6 +400,7 @@ class DesktopApi:
         current = self._load_settings()
         allowed = {
             "output_root",
+            "output_root_custom",
             "bold_mode",
             "keep_metadata_first_page",
             "make_chorus_page",

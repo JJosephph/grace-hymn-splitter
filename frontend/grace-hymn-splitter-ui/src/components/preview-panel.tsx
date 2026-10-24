@@ -6,6 +6,7 @@ import {
   LoaderCircle,
   Terminal,
 } from "lucide-react"
+import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 
 import { Button } from "@/components/ui/button"
@@ -19,7 +20,62 @@ import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { useAppStore } from "@/store/app-store"
+import { callDesktop } from "@/lib/desktop-api"
 import { cn } from "@/lib/utils"
+
+function LocalThumbnail({
+  path,
+  name,
+}: {
+  path: string
+  name: string
+}) {
+  const [url, setUrl] = useState("")
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    callDesktop<{ url: string }>("get_thumbnail", path, 1200).then(
+      (response) => {
+        if (cancelled) return
+        if (response.ok && response.url) {
+          setUrl(response.url)
+        } else {
+          setFailed(true)
+        }
+      },
+    )
+
+    return () => {
+      cancelled = true
+    }
+  }, [path])
+
+  if (failed) {
+    return (
+      <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+        <FileImage className="size-5" />
+      </div>
+    )
+  }
+
+  if (!url) {
+    return (
+      <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+        <LoaderCircle className="size-5 animate-spin" />
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={url}
+      alt={name}
+      className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+    />
+  )
+}
 
 export function PreviewPanel() {
   const job = useAppStore((state) => state.job)
@@ -118,10 +174,9 @@ export function PreviewPanel() {
                     className="group overflow-hidden rounded-xl border bg-background text-left transition-shadow hover:shadow-sm"
                   >
                     <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted">
-                      <img
-                        src={preview.url}
-                        alt={preview.name}
-                        className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                      <LocalThumbnail
+                        path={preview.path}
+                        name={preview.name}
                       />
                     </div>
                     <div className="truncate border-t px-3 py-2 text-xs text-muted-foreground">
