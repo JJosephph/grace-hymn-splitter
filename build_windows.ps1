@@ -65,7 +65,7 @@ if (-not (Test-Path -LiteralPath $BuiltExe)) {
 $ReleaseDir = Join-Path $ProjectDir "release"
 New-Item -ItemType Directory -Force -Path $ReleaseDir | Out-Null
 
-$ReleaseName = "GraceHymnSplitter-v$Version-win64.exe"
+$ReleaseName = "GraceHymnSplitter-v$Version-win64-portable.exe"
 $ReleaseExe = Join-Path $ReleaseDir $ReleaseName
 Copy-Item -LiteralPath $BuiltExe -Destination $ReleaseExe -Force
 
@@ -73,5 +73,52 @@ $Hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $ReleaseExe).Hash.ToLowerIn
 $ChecksumFile = Join-Path $ReleaseDir "$ReleaseName.sha256"
 "$Hash  $ReleaseName" | Set-Content -LiteralPath $ChecksumFile -Encoding ascii
 
-Write-Host "Release built: $ReleaseExe"
-Write-Host "SHA256: $Hash"
+Write-Host "Portable release built: $ReleaseExe"
+Write-Host "Portable SHA256: $Hash"
+
+$InnoCandidates = @()
+$InnoCommand = Get-Command iscc -ErrorAction SilentlyContinue
+if ($InnoCommand) {
+    $InnoCandidates += $InnoCommand.Source
+}
+$ProgramFilesX86 = ${env:ProgramFiles(x86)}
+if ($ProgramFilesX86) {
+    $InnoCandidates += Join-Path $ProgramFilesX86 "Inno Setup 6\ISCC.exe"
+    $InnoCandidates += Join-Path $ProgramFilesX86 "Inno Setup 5\ISCC.exe"
+}
+if ($env:ProgramFiles) {
+    $InnoCandidates += Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe"
+}
+if ($env:LOCALAPPDATA) {
+    $InnoCandidates += Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"
+}
+$Iscc = $InnoCandidates |
+    Where-Object { $_ -and (Test-Path -LiteralPath $_) } |
+    Select-Object -First 1
+if (-not $Iscc) {
+    throw "Inno Setup 6 was not found. Install it before building the Windows installer."
+}
+
+$InstallerScript = Join-Path $ProjectDir "installer\grace_hymn_splitter.iss"
+if (-not (Test-Path -LiteralPath $InstallerScript)) {
+    throw "Installer script was not found: $InstallerScript"
+}
+
+Write-Host "Building Windows installer v$Version ..."
+& $Iscc "/DMyAppVersion=$Version" $InstallerScript
+if ($LASTEXITCODE -ne 0) {
+    throw "Inno Setup failed with exit code $LASTEXITCODE."
+}
+
+$InstallerName = "GraceHymnSplitter-v$Version-setup-win64.exe"
+$InstallerExe = Join-Path $ReleaseDir $InstallerName
+if (-not (Test-Path -LiteralPath $InstallerExe)) {
+    throw "Installer output was not found: $InstallerExe"
+}
+
+$InstallerHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $InstallerExe).Hash.ToLowerInvariant()
+$InstallerChecksumFile = Join-Path $ReleaseDir "$InstallerName.sha256"
+"$InstallerHash  $InstallerName" | Set-Content -LiteralPath $InstallerChecksumFile -Encoding ascii
+
+Write-Host "Installer built: $InstallerExe"
+Write-Host "Installer SHA256: $InstallerHash"

@@ -1,0 +1,12 @@
+安装完成
+
+感谢你使用恩典歌谱转换PPT大图。
+
+愿这个工具帮助服侍诗歌投影的弟兄姊妹，
+让会众更清楚地看见歌词、同心歌唱。
+
+如果这个软件对你有帮助，欢迎把项目分享给更多有需要的教会和服侍同工。
+
+开发者：WangYufan
+许可证：MIT License
+项目主页：https://github.com/JJosephph/grace-hymn-splitter

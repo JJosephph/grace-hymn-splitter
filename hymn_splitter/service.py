@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +15,17 @@ from .imaging import build_pages
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 CONFIG_DIR = PROJECT_DIR / "configs"
-DEFAULT_OUTPUT_DIR = PROJECT_DIR / "outputs"
+
+
+def _runtime_app_dir() -> Path:
+    """Return the writable product directory for source and frozen builds."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return PROJECT_DIR
+
+
+APP_DIR = _runtime_app_dir()
+DEFAULT_OUTPUT_DIR = APP_DIR / ("输出" if getattr(sys, "frozen", False) else "outputs")
 
 
 def current_version() -> str:

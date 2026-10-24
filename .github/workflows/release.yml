@@ -34,7 +34,11 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install "pyinstaller>=6.10,<7"
 
-      - name: Build portable Windows executable
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup --no-progress -y
+
+      - name: Build Windows installer and portable executable
         shell: powershell
         run: .\build_windows.ps1
 

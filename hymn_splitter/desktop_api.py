@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import Any
 
 from .service import (
+    APP_DIR,
     DEFAULT_OUTPUT_DIR,
-    PROJECT_DIR,
     build_from_source,
     current_version,
 )
@@ -49,7 +49,7 @@ class DesktopApi:
                 Path(settings.get("output_root") or DEFAULT_OUTPUT_DIR).resolve()
             ),
             "settings": settings,
-            "project_dir": str(PROJECT_DIR),
+            "project_dir": str(APP_DIR),
             "brand": {
                 "name": "恩典歌谱转换PPT大图",
                 "subtitle": "恩典简谱分段转换",
