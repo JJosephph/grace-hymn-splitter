@@ -3,6 +3,7 @@
 
 这是一个恩典开源免费软件。
 开发者：WangYufan
+邮箱：yufan14710@gmail.com
 许可证：MIT License
 项目主页：https://github.com/JJosephph/grace-hymn-splitter
 

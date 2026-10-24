@@ -8,7 +8,8 @@
 
 把一整页多段式简谱，拆成适合 PPT 投影的单段大图。每一段都尽量占满画面，解决诗歌 PPT 字太小、看不清的问题。
 
-这是一个 **恩典开源免费软件**，开发者：**WangYufan**。
+这是一个 **恩典开源免费软件**，开发者：**WangYufan**  
+邮箱：**yufan14710@gmail.com**
 
 ## 为什么做这个软件
 
@@ -70,7 +71,7 @@
 ### 方式一：下载安装版（推荐）
 
 1. 打开本项目的 GitHub Releases 页面。
-2. 下载 `GraceHymnSplitter-v0.2.3-setup-win64.exe`。
+2. 下载 `GraceHymnSplitter-v0.2.4-setup-win64.exe`。
 3. 双击安装，按中文向导完成即可。默认安装到当前用户目录，不需要管理员权限；也可以点击“浏览”安装到 D 盘。
 4. 安装完成后启动软件，在窗口里选择歌谱、确认诗歌名和输出目录，然后点击“开始制作”。
 
@@ -81,7 +82,7 @@ Windows 10/11 通常已经带有 Edge WebView2 运行环境。个别精简系统
 ### 方式二：下载免安装版
 
 1. 打开本项目的 GitHub Releases 页面。
-2. 下载 `GraceHymnSplitter-v0.2.3-win64-portable.exe`。
+2. 下载 `GraceHymnSplitter-v0.2.4-win64-portable.exe`。
 3. 双击运行，不需要安装 Python。
 4. 免安装版不会创建开始菜单和桌面快捷方式，适合放在 U 盘或临时使用。
 
@@ -236,18 +237,19 @@ powershell -ExecutionPolicy Bypass -File build_windows.ps1
 
 构建结果会生成在 `release/` 目录，包含：
 
-- `GraceHymnSplitter-v0.2.3-setup-win64.exe`（推荐下载）
-- `GraceHymnSplitter-v0.2.3-setup-win64.exe.sha256`
-- `GraceHymnSplitter-v0.2.3-win64-portable.exe`
-- `GraceHymnSplitter-v0.2.3-win64-portable.exe.sha256`
+- `GraceHymnSplitter-v0.2.4-setup-win64.exe`（推荐下载）
+- `GraceHymnSplitter-v0.2.4-setup-win64.exe.sha256`
+- `GraceHymnSplitter-v0.2.4-win64-portable.exe`
+- `GraceHymnSplitter-v0.2.4-win64-portable.exe.sha256`
 
-推送形如 `v0.2.3` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
+推送形如 `v0.2.4` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
 
 ## 开源说明
 
 - 软件名称：**恩典歌谱转换PPT大图**
 - 副标题：**恩典简谱分段转换**
 - 开发者：**WangYufan**
+- 邮箱：**yufan14710@gmail.com**
 - 许可证：MIT
 - 声明：**恩典开源免费软件**
 

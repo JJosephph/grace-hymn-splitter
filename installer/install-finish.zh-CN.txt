@@ -8,5 +8,6 @@
 如果这个软件对你有帮助，欢迎把项目分享给更多有需要的教会和服侍同工。
 
 开发者：WangYufan
+邮箱：yufan14710@gmail.com
 许可证：MIT License
 项目主页：https://github.com/JJosephph/grace-hymn-splitter

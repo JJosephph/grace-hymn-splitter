@@ -106,6 +106,9 @@ export function AppSidebar() {
             <div className="truncate text-[11px] text-muted-foreground">
               开发者 WangYufan
             </div>
+            <div className="truncate text-[11px] text-muted-foreground">
+              {bootstrap?.brand.developer_email || "yufan14710@gmail.com"}
+            </div>
           </div>
           <Button
             variant="ghost"

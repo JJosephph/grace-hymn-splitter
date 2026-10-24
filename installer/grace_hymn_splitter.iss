@@ -4,11 +4,12 @@
 #define MyAppName "恩典歌谱转换PPT大图"
 #define MyAppSubtitle "恩典简谱分段转换"
 #define MyAppPublisher "WangYufan"
+#define MyAppEmail "yufan14710@gmail.com"
 #define MyAppURL "https://github.com/JJosephph/grace-hymn-splitter"
 #define MyAppExeName "GraceHymnSplitter.exe"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "0.2.3"
+  #define MyAppVersion "0.2.4"
 #endif
 
 [Setup]
@@ -17,6 +18,7 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+AppContact={#MyAppEmail}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}/issues
 AppUpdatesURL={#MyAppURL}/releases

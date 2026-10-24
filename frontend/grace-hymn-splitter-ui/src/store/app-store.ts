@@ -42,6 +42,7 @@ type Brand = {
   subtitle: string
   tagline: string
   developer: string
+  developer_email: string
   license: string
 }
 

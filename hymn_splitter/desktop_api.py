@@ -55,6 +55,7 @@ class DesktopApi:
                 "subtitle": "恩典简谱分段转换",
                 "tagline": "让每一段诗歌，在屏幕上清清楚楚。",
                 "developer": "WangYufan",
+                "developer_email": "yufan14710@gmail.com",
                 "license": "恩典开源免费软件",
             },
         }
