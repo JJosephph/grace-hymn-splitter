@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+user_settings.json
+outputs/_inspect/
+outputs/_auto_test/
+outputs/_api_test/
+outputs/_ui*.png
+outputs/
+docs/examples/_*

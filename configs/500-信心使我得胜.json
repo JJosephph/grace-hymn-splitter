@@ -1,0 +1,83 @@
+{
+  "base_dir": "..",
+  "song": {
+    "number": "500",
+    "title": "信心使我得胜",
+    "file_prefix": "500-信心使我得胜"
+  },
+  "source": "samples/500-信心使我得胜.jpg",
+  "output_dir": "outputs/500-信心使我得胜",
+  "header_crop": [0, 0, 1648, 450],
+  "header_mask": [[320, 370, 1648, 450], [180, 425, 320, 450]],
+  "page": {
+    "width": 1648,
+    "background": [255, 255, 255],
+    "bottom_margin": 60
+  },
+  "page_label": {
+    "enabled": true,
+    "position": [1370, 365],
+    "font": "C:/Windows/Fonts/msyhbd.ttc",
+    "font_size": 46,
+    "color": [40, 40, 40]
+  },
+  "verse_labels": ["第1段", "第2段", "第3段", "第4段"],
+  "bold_mode": "none",
+  "bold_original_lyrics": false,
+  "bold_strength": 1,
+  "systems": [
+    {
+      "note_crop": [0, 450, 1648, 540],
+      "lyric_rows": [
+        [545, 606],
+        [619, 681],
+        [694, 755],
+        [768, 829]
+      ]
+    },
+    {
+      "note_crop": [0, 850, 1648, 990],
+      "lyric_rows": [
+        [999, 1061],
+        [1074, 1135],
+        [1148, 1209],
+        [1222, 1284]
+      ]
+    },
+    {
+      "note_crop": [0, 1310, 1648, 1435],
+      "lyric_rows": [
+        [1454, 1515],
+        [1528, 1589],
+        [1602, 1664],
+        [1677, 1738]
+      ]
+    },
+    {
+      "note_crop": [0, 1760, 1648, 1885],
+      "lyric_rows": [
+        [1908, 1969],
+        [1982, 2043],
+        [2057, 2118],
+        [2131, 2192]
+      ]
+    }
+  ],
+  "chorus": {
+    "label": "副歌",
+    "blocks": [
+      {
+        "note_crop": [0, 2235, 1648, 2405],
+        "lyric_row": [2412, 2473]
+      },
+      {
+        "note_crop": [0, 2480, 1648, 2622],
+        "lyric_row": [2626, 2687]
+      }
+    ]
+  },
+  "options": {
+    "include_chorus_on_verse_pages": false,
+    "make_chorus_page": true
+  }
+}

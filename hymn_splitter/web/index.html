@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>恩典歌谱转换PPT大图</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 18V5l10-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="16" cy="16" r="3"></circle>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <strong>恩典歌谱</strong>
+          <span>转换 PPT 大图</span>
+        </div>
+      </div>
+
+      <div class="sidebar-copy">
+        <p class="sidebar-kicker">恩典简谱分段转换</p>
+        <p class="sidebar-note">让每一段诗歌，在屏幕上清清楚楚。</p>
+      </div>
+
+      <div class="sidebar-steps" aria-label="制作步骤">
+        <div class="sidebar-step is-active" data-step="1">
+          <span>01</span>
+          <div>
+            <strong>选择歌谱</strong>
+            <small>上传整页简谱图片</small>
+          </div>
+        </div>
+        <div class="sidebar-step" data-step="2">
+          <span>02</span>
+          <div>
+            <strong>调整选项</strong>
+            <small>加粗、标题和副歌</small>
+          </div>
+        </div>
+        <div class="sidebar-step" data-step="3">
+          <span>03</span>
+          <div>
+            <strong>生成大图</strong>
+            <small>按诗歌名自动保存</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="blessing-card" type="button" id="blessingButton">
+          <span class="blessing-icon">♡</span>
+          <span>
+            <strong>愿你的服侍成为祝福</strong>
+            <small>把诗歌唱清楚，也把人带到主面前。</small>
+          </span>
+        </button>
+        <div class="sidebar-meta">
+          <span>恩典开源免费软件</span>
+          <span>开发者 WangYufan</span>
+          <button class="link-button" type="button" id="checkUpdate">检查更新 · <span id="versionLabel">v0.2.0</span></button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="topbar-eyebrow">恩典歌谱转换PPT大图</p>
+          <h1>把简谱拆成适合投影的分段大图</h1>
+        </div>
+        <div class="topbar-actions">
+          <span class="status-pill" id="globalStatus">等待制作</span>
+          <button class="icon-button" type="button" id="openProject" title="打开软件目录">
+            <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="content-scroll">
+        <section class="workspace">
+          <div class="workflow-column">
+            <section class="workflow-section">
+              <div class="section-heading">
+                <div>
+                  <span class="section-number">01</span>
+                  <h2>选择歌谱</h2>
+                </div>
+                <span class="section-hint" id="fileState">支持 PNG / JPG / WEBP</span>
+              </div>
+
+              <div class="drop-zone" id="imageDrop">
+                <input id="imageInput" type="file" accept=".png,.jpg,.jpeg,.webp,.bmp" hidden>
+                <div class="drop-illustration" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m17 8-5-5-5 5"></path><path d="M12 3v12"></path></svg>
+                </div>
+                <div>
+                  <strong>拖入歌谱图片</strong>
+                  <p>也可以直接选择本地图片</p>
+                </div>
+                <button class="secondary-button" type="button" id="chooseImage">选择图片</button>
+              </div>
+
+              <div class="selected-image" id="selectedImage" hidden>
+                <img id="imagePreview" alt="歌谱预览">
+                <div class="selected-image-copy">
+                  <strong id="imageName"></strong>
+                  <span id="imageMeta"></span>
+                  <button class="text-button" type="button" id="clearImage">重新选择</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="workflow-section">
+              <div class="section-heading">
+                <div>
+                  <span class="section-number">02</span>
+                  <h2>歌曲信息</h2>
+                </div>
+              </div>
+              <div class="field-grid">
+                <label class="field">
+                  <span>诗歌编号</span>
+                  <input id="songNumber" type="text" placeholder="例如 413">
+                </label>
+                <label class="field">
+                  <span>诗歌名称</span>
+                  <input id="songTitle" type="text" placeholder="例如 成圣须用工夫">
+                </label>
+              </div>
+              <label class="field">
+                <span>输出目录</span>
+                <div class="input-with-button">
+                  <input id="outputRoot" type="text" autocomplete="off">
+                  <button class="secondary-button" type="button" id="chooseOutput">选择目录</button>
+                </div>
+              </label>
+            </section>
+
+            <section class="workflow-section">
+              <div class="section-heading">
+                <div>
+                  <span class="section-number">03</span>
+                  <h2>制作选项</h2>
+                </div>
+              </div>
+
+              <div class="option-row">
+                <div class="option-label">
+                  <strong>歌词加粗</strong>
+                  <span>当原歌词已经够粗时，保持原样最自然</span>
+                </div>
+                <div class="segmented-control" id="boldMode" role="group" aria-label="歌词加粗">
+                  <button type="button" data-value="none" class="is-active">保持原样</button>
+                  <button type="button" data-value="light">轻度加粗</button>
+                  <button type="button" data-value="strong">明显加粗</button>
+                </div>
+              </div>
+
+              <label class="switch-row">
+                <span>
+                  <strong>只保留第一页标题元信息</strong>
+                  <small>后面每页只保留段号和歌谱，PPT 更清爽</small>
+                </span>
+                <input id="keepMetadata" type="checkbox" checked>
+                <i aria-hidden="true"></i>
+              </label>
+
+              <label class="switch-row">
+                <span>
+                  <strong>副歌单独成页</strong>
+                  <small>有副歌时，自动生成一张大图</small>
+                </span>
+                <input id="makeChorus" type="checkbox" checked>
+                <i aria-hidden="true"></i>
+              </label>
+
+              <div class="action-row">
+                <button class="primary-button" type="button" id="startBuild">
+                  <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg>
+                  <span>开始制作</span>
+                </button>
+                <button class="secondary-button" type="button" id="openOutput" disabled>
+                  <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                  <span>打开输出目录</span>
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <aside class="result-column">
+            <section class="result-panel">
+              <div class="result-head">
+                <div>
+                  <span class="section-number">预览</span>
+                  <h2>分段结果</h2>
+                </div>
+                <span class="result-count" id="resultCount">还没有生成</span>
+              </div>
+
+              <div class="progress-wrap" id="progressWrap" hidden>
+                <div class="progress-track"><span id="progressBar"></span></div>
+                <div class="progress-copy">
+                  <strong id="progressTitle">正在制作…</strong>
+                  <span id="progressMessage"></span>
+                </div>
+              </div>
+
+              <div class="preview-empty" id="previewEmpty">
+                <div class="empty-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle></svg>
+                </div>
+                <strong>生成后在这里预览</strong>
+                <span>每一段都会成为一张适合投影的大图</span>
+              </div>
+
+              <div class="preview-grid" id="previewGrid" hidden></div>
+
+              <div class="log-panel" id="logPanel">
+                <div class="log-head">
+                  <span>制作记录</span>
+                  <button class="text-button" type="button" id="toggleLog">收起</button>
+                </div>
+                <div class="log-list" id="logList">
+                  <div class="log-line">
+                    <span class="log-dot"></span>
+                    <span>准备就绪，选择歌谱后就可以开始。</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="sample-panel">
+              <div class="sample-head">
+                <strong>示例歌谱</strong>
+                <span>点击可快速试用</span>
+              </div>
+              <div class="sample-list" id="sampleList"></div>
+            </section>
+          </aside>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>

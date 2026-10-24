@@ -1,0 +1,132 @@
+{
+  "base_dir": "..",
+  "song": {
+    "number": "413",
+    "title": "成圣须用工夫",
+    "file_prefix": "413-成圣须用工夫"
+  },
+  "source": "samples/413-成圣须用工夫.jpg",
+  "output_dir": "outputs/413-成圣须用工夫",
+  "header_crop": [0, 0, 3070, 500],
+  "page": {
+    "width": 3070,
+    "background": [255, 255, 255],
+    "bottom_margin": 60
+  },
+  "page_label": {
+    "enabled": true,
+    "position": [2660, 355],
+    "font": "C:/Windows/Fonts/msyhbd.ttc",
+    "font_size": 52,
+    "color": [40, 40, 40]
+  },
+  "verse_labels": ["第1段", "第2段", "第3段", "第4段"],
+  "bold_mode": "none",
+  "bold_original_lyrics": false,
+  "systems": [
+    {
+      "note_crop": [0, 558, 3070, 770],
+      "lyric_rows": [
+        [792, 901],
+        [923, 1031],
+        [1063, 1171],
+        [1200, 1308]
+      ],
+      "replace": {
+        "font": "C:/Windows/Fonts/STSONG.TTF",
+        "font_size": 90,
+        "stroke_width": 2,
+        "color": [40, 40, 40],
+        "text_area": [320, 2565],
+        "x_centers": [376, 598, 751, 913, 1086, 1349, 1657, 1905, 2065, 2240, 2419],
+        "middle_punct_x": 1425,
+        "end_punct_x": 2488,
+        "verses": [
+          {"parts": ["成圣须用工夫", "儆醒常祷告"], "middle": "，", "end": "；"},
+          {"parts": ["成圣须用工夫", "世界虽忙碌"], "middle": "，", "end": "，"},
+          {"parts": ["成圣须用工夫", "让主领你路"], "middle": "，", "end": "，"},
+          {"parts": ["成圣须用工夫", "内心须宁静"], "middle": "，", "end": "，"}
+        ]
+      }
+    },
+    {
+      "note_crop": [0, 1476, 3070, 1685],
+      "lyric_rows": [
+        [1715, 1824],
+        [1852, 1963],
+        [1990, 2100],
+        [2130, 2240]
+      ],
+      "replace": {
+        "font": "C:/Windows/Fonts/STSONG.TTF",
+        "font_size": 90,
+        "stroke_width": 2,
+        "color": [40, 40, 40],
+        "text_area": [320, 2565],
+        "x_centers": [377, 587, 740, 911, 1092, 1393, 1669, 1913, 2083, 2247, 2414],
+        "middle_punct_x": 1457,
+        "end_punct_x": 2482,
+        "verses": [
+          {"parts": ["时常与主亲近", "领受主真道"], "middle": "，", "end": "，"},
+          {"parts": ["应当放下世事", "单单亲近主"], "middle": "，", "end": "；"},
+          {"parts": ["不走在主前头", "只随主脚步"], "middle": "，", "end": "；"},
+          {"parts": ["让主前来管理", "意念和性情"], "middle": "", "end": "；"}
+        ]
+      }
+    },
+    {
+      "note_crop": [0, 2394, 3070, 2608],
+      "lyric_rows": [
+        [2636, 2745],
+        [2774, 2883],
+        [2909, 3018],
+        [3049, 3158]
+      ],
+      "replace": {
+        "font": "C:/Windows/Fonts/STSONG.TTF",
+        "font_size": 90,
+        "stroke_width": 2,
+        "color": [40, 40, 40],
+        "text_area": [320, 2565],
+        "x_centers": [379, 588, 741, 901, 1070, 1385, 1646, 1929, 2094, 2256, 2421],
+        "middle_punct_x": 1456,
+        "end_punct_x": 2494,
+        "verses": [
+          {"parts": ["结交属神儿女", "帮助软弱人"], "middle": "，", "end": "，"},
+          {"parts": ["时常仰望耶稣", "更肖主模样"], "middle": "，", "end": "，"},
+          {"parts": ["无论快乐烦忧", "始终跟随主"], "middle": "，", "end": "，"},
+          {"parts": ["随从圣灵引领", "直到爱之源"], "middle": "，", "end": "，"}
+        ]
+      }
+    },
+    {
+      "note_crop": [0, 3326, 3070, 3543],
+      "lyric_rows": [
+        [3569, 3678],
+        [3706, 3816],
+        [3844, 3953],
+        [3986, 4096]
+      ],
+      "replace": {
+        "font": "C:/Windows/Fonts/STSONG.TTF",
+        "font_size": 90,
+        "stroke_width": 2,
+        "color": [40, 40, 40],
+        "text_area": [320, 2565],
+        "x_centers": [379, 581, 741, 908, 1081, 1386, 1666, 1917, 2087, 2254, 2435],
+        "middle_punct_x": 1467,
+        "end_punct_x": 2509,
+        "verses": [
+          {"parts": ["无论所作何事", "莫忘求主恩"], "middle": "，", "end": "。"},
+          {"parts": ["亲友借你言行", "可见主形像"], "middle": "，", "end": "。"},
+          {"parts": ["坚信主的话语", "常仰望耶稣"], "middle": "，", "end": "。"},
+          {"parts": ["你就配在天上", "事主到永远"], "middle": "", "end": "。"}
+        ]
+      }
+    }
+  ],
+  "options": {
+    "include_chorus_on_verse_pages": false,
+    "make_chorus_page": false
+  }
+}
