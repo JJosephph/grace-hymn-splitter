@@ -15,7 +15,6 @@ datas = [
     (str(project_dir / "VERSION"), "."),
     (str(project_dir / "app_config.json"), "."),
     (str(project_dir / "configs"), "configs"),
-    (str(project_dir / "samples"), "samples"),
     (str(project_dir / "hymn_splitter" / "web"), "hymn_splitter/web"),
 ]
 datas += collect_data_files("webview")

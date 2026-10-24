@@ -1,5 +1,13 @@
 # 更新记录
 
+## 0.2.1
+
+- 前端迁移到 React、shadcn/ui Nova、Lucide、Motion 和 react-resizable-panels。
+- 状态管理统一使用 Zustand，文件拖入使用 react-dropzone。
+- 软件本体移除示例歌谱，示例只保留在 README 中。
+- 上传歌谱后自动从文件名提取编号和诗歌名，输入框仍可手动修改。
+- README 增加原始歌谱与拆分结果的对照示例。
+
 ## 0.2.0
 
 - 新增桌面图形界面，支持拖入或选择歌谱图片。

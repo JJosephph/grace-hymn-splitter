@@ -27,6 +27,30 @@ if (-not $PythonExe) {
     throw "A working Python 3.10+ installation was not found."
 }
 
+$FrontendDir = Join-Path $ProjectDir "frontend\grace-hymn-splitter-ui"
+if (Test-Path -LiteralPath $FrontendDir) {
+    $Npm = Get-Command npm -ErrorAction SilentlyContinue
+    if (-not $Npm) {
+        throw "Node.js and npm are required to build the desktop interface."
+    }
+
+    Push-Location $FrontendDir
+    try {
+        Write-Host "Building desktop interface ..."
+        & $Npm.Source ci
+        if ($LASTEXITCODE -ne 0) {
+            throw "npm ci failed with exit code $LASTEXITCODE."
+        }
+        & $Npm.Source run build
+        if ($LASTEXITCODE -ne 0) {
+            throw "npm run build failed with exit code $LASTEXITCODE."
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 Write-Host "Building Windows portable release v$Version ..."
 & $PythonExe @PythonArgs -m PyInstaller --noconfirm --clean (Join-Path $ProjectDir "grace_hymn_splitter.spec")
 if ($LASTEXITCODE -ne 0) {

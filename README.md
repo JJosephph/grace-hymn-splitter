@@ -6,8 +6,6 @@
 
 这是一个 **恩典开源免费软件**，开发者：**WangYufan**。
 
-![413 第一段示例](docs/examples/413-第1段.png)
-
 ## 为什么做这个软件
 
 很多教会做诗歌 PPT 时，会把整页简谱截图放上去。页面上同时有 3 段或 4 段歌词，投影到屏幕上后，每一行都变得很小。
@@ -21,21 +19,15 @@
 
 ## 效果示例
 
-第一页保留完整元信息：
+下面是原始歌谱和拆分结果的对照。示例只放在 README 中，不进入软件界面。
 
-![413 第一段](docs/examples/413-第1段.png)
+| 原始歌谱 | 拆分后 |
+| --- | --- |
+| ![413 原始歌谱](samples/413-成圣须用工夫.jpg) | ![413 第一段](docs/examples/413-第1段.png) |
+| ![500 原始歌谱](samples/500-信心使我得胜.jpg) | ![500 副歌](docs/examples/500-副歌.png) |
+| ![665 原始歌谱](samples/665-当转眼仰望耶稣.png) | ![665 第二段](docs/examples/665-第2段.png) |
 
-后续页面只保留段号和歌谱，明显更矮、更适合投影：
-
-![413 第二段](docs/examples/413-第2段.png)
-
-副歌可以单独成页：
-
-![500 副歌](docs/examples/500-副歌.png)
-
-三句主歌也能单独拆开：
-
-![665 第二段](docs/examples/665-第2段.png)
+第一页保留完整元信息，后续页面只保留段号和歌谱，明显更矮、更适合投影。
 
 ## 功能
 
@@ -51,12 +43,24 @@
 - 提供检查更新入口，方便后续发布新版本。
 - 保留 JSON 布局配置，特殊版式仍可精调。
 
+## 界面技术
+
+桌面界面采用统一的组件和成熟库，不自行拼装基础组件：
+
+- UI 组件：shadcn/ui Nova
+- 图标：Lucide
+- 动画：Motion
+- 可调整布局：react-resizable-panels
+- 文件拖入：react-dropzone
+- 状态管理：Zustand
+- 字体：Geist Variable
+
 ## 快速开始
 
 ### 方式一：下载免安装版（推荐）
 
 1. 打开本项目的 GitHub Releases 页面。
-2. 下载 `GraceHymnSplitter-v0.2.0-win64.exe`。
+2. 下载 `GraceHymnSplitter-v0.2.1-win64.exe`。
 3. 双击运行，不需要安装 Python。
 4. 在窗口里选择歌谱、填写诗歌名、选择输出目录，然后点击“开始制作”。
 
@@ -166,8 +170,11 @@ hymn-splitter/
     desktop_api.py     桌面界面接口
     gui.py             pywebview 启动入口
     web/               浅色桌面界面
+  frontend/
+    grace-hymn-splitter-ui/
+                        React + shadcn Nova 前端源码
   configs/             已调好的示例布局和特殊版式配置
-  samples/             示例歌谱
+  samples/             README 示例歌谱，不打包进软件
   outputs/             默认输出目录
   docs/examples/       切图示例
   run.py               双击/命令行入口
@@ -184,6 +191,10 @@ hymn-splitter/
 开发运行：
 
 ```powershell
+cd frontend\grace-hymn-splitter-ui
+npm ci
+npm run build
+cd ..\..
 py -m pip install -r requirements.txt
 py run.py
 ```
@@ -202,10 +213,10 @@ powershell -ExecutionPolicy Bypass -File build_windows.ps1
 
 构建结果会生成在 `release/` 目录，包含：
 
-- `GraceHymnSplitter-v0.2.0-win64.exe`
-- `GraceHymnSplitter-v0.2.0-win64.exe.sha256`
+- `GraceHymnSplitter-v0.2.1-win64.exe`
+- `GraceHymnSplitter-v0.2.1-win64.exe.sha256`
 
-推送形如 `v0.2.0` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
+推送形如 `v0.2.1` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
 
 ## 开源说明
 

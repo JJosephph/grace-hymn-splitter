@@ -42,18 +42,6 @@ class DesktopApi:
     # ---------- bootstrap and dialogs ----------
     def get_bootstrap(self) -> dict[str, Any]:
         settings = self._load_settings()
-        samples = []
-        sample_dir = PROJECT_DIR / "samples"
-        if sample_dir.is_dir():
-            for path in sorted(sample_dir.iterdir()):
-                if path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".bmp"}:
-                    samples.append(
-                        {
-                            "name": path.name,
-                            "path": str(path),
-                            "url": _file_uri(path),
-                        }
-                    )
         return {
             "ok": True,
             "version": current_version(),
@@ -61,7 +49,6 @@ class DesktopApi:
                 Path(settings.get("output_root") or DEFAULT_OUTPUT_DIR).resolve()
             ),
             "settings": settings,
-            "samples": samples,
             "project_dir": str(PROJECT_DIR),
             "brand": {
                 "name": "恩典歌谱转换PPT大图",
@@ -82,7 +69,13 @@ class DesktopApi:
                     "所有文件 (*.*)",
                 ),
             )
-            return {"ok": True, "path": path or "", "url": _file_uri(path) if path else ""}
+            name = Path(path).name if path else ""
+            return {
+                "ok": True,
+                "path": path or "",
+                "url": _file_uri(path) if path else "",
+                "name": name,
+            }
         except Exception as error:
             return {"ok": False, "error": str(error)}
 

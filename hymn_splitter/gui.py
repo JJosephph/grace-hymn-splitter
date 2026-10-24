@@ -26,7 +26,7 @@ def main() -> None:
         height=880,
         min_size=(1040, 700),
         resizable=True,
-        background_color="#fffaf3",
+        background_color="#fbfbfd",
         text_select=True,
     )
     api.attach_window(window)

@@ -5,6 +5,9 @@ __pycache__/
 build/
 dist/
 release/
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/.vite/
 user_settings.json
 outputs/_inspect/
 outputs/_auto_test/
