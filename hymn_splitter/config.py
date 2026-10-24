@@ -138,10 +138,22 @@ def load_config(config_path: str | Path) -> dict[str, Any]:
                 _require(block, "note_crop", f"chorus.blocks[{index}]"),
                 f"chorus.blocks[{index}].note_crop",
             )
-            _validate_lyric_row(
-                _require(block, "lyric_row", f"chorus.blocks[{index}]"),
-                f"chorus.blocks[{index}].lyric_row",
-            )
+            lyric_rows = block.get("lyric_rows")
+            if lyric_rows is not None:
+                if not lyric_rows:
+                    raise ConfigError(
+                        f"chorus.blocks[{index}].lyric_rows must not be empty"
+                    )
+                for row_index, row in enumerate(lyric_rows, start=1):
+                    _validate_lyric_row(
+                        row,
+                        f"chorus.blocks[{index}].lyric_rows[{row_index}]",
+                    )
+            else:
+                _validate_lyric_row(
+                    _require(block, "lyric_row", f"chorus.blocks[{index}]"),
+                    f"chorus.blocks[{index}].lyric_row",
+                )
 
     return config
 

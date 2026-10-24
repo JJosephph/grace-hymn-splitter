@@ -9,7 +9,7 @@
 #define MyAppExeName "GraceHymnSplitter.exe"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "0.2.6"
+  #define MyAppVersion "0.2.7"
 #endif
 
 [Setup]

@@ -47,7 +47,9 @@ export function OptionsPanel() {
         <Field orientation="horizontal" className="py-4">
           <div className="flex items-center gap-2.5">
             <Layers3 className="size-4 text-muted-foreground" />
-            <FieldLabel htmlFor="keep-metadata">第一页保留标题信息</FieldLabel>
+            <FieldLabel htmlFor="keep-metadata">
+              只保留第一页的标题信息
+            </FieldLabel>
           </div>
           <Switch
             id="keep-metadata"

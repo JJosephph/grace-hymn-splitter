@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 
 def _rgb(value: list[int] | tuple[int, int, int]) -> tuple[int, int, int]:
@@ -22,6 +22,12 @@ def _box_height(box: list[int]) -> int:
     if len(box) == 2:
         return int(box[1]) - int(box[0])
     return int(box[3]) - int(box[1])
+
+
+def _block_lyric_boxes(block: dict[str, Any]) -> list[list[int]]:
+    if "lyric_rows" in block:
+        return list(block["lyric_rows"])
+    return [block["lyric_row"]]
 
 
 def bold_text_region(
@@ -149,7 +155,7 @@ def _paste_block(
     page: Image.Image,
     source: Image.Image,
     note_crop_box: list[int],
-    lyric_box: list[int],
+    lyric_boxes: list[list[int]],
     y: int,
     draw: ImageDraw.ImageDraw,
     system: dict[str, Any] | None,
@@ -161,39 +167,40 @@ def _paste_block(
     page.paste(note_crop, (0, y))
     y += note_crop.height
 
-    if system is not None and system.get("replace"):
-        lyric_crop = source.crop(_full_width_box(source, lyric_box))
-        page.paste(lyric_crop, (0, y))
-        _draw_replacement(
-            page,
-            source,
-            system,
-            verse_index,
-            y,
-            lyric_box,
-            draw,
-        )
-        return y + lyric_crop.height
+    for lyric_box in lyric_boxes:
+        if system is not None and system.get("replace"):
+            lyric_crop = source.crop(_full_width_box(source, lyric_box))
+            page.paste(lyric_crop, (0, y))
+            _draw_replacement(
+                page,
+                source,
+                system,
+                verse_index,
+                y,
+                lyric_box,
+                draw,
+            )
+        elif system is None:
+            lyric_crop = source.crop(_full_width_box(source, lyric_box))
+            if bold:
+                lyric_crop = bold_text_region(lyric_crop, strength=bold_strength)
+            page.paste(lyric_crop, (0, y))
+        else:
+            lyric_crop = _prepare_lyric_crop(
+                page,
+                source,
+                system,
+                verse_index,
+                y,
+                lyric_box,
+                draw,
+                bold,
+                bold_strength,
+            )
+            page.paste(lyric_crop, (0, y))
+        y += lyric_crop.height
 
-    if system is None:
-        lyric_crop = source.crop(_full_width_box(source, lyric_box))
-        if bold:
-            lyric_crop = bold_text_region(lyric_crop, strength=bold_strength)
-    else:
-        lyric_crop = _prepare_lyric_crop(
-            page,
-            source,
-            system,
-            verse_index,
-            y,
-            lyric_box,
-            draw,
-            bold,
-            bold_strength,
-        )
-
-    page.paste(lyric_crop, (0, y))
-    return y + lyric_crop.height
+    return y
 
 
 def _draw_page_label(
@@ -288,7 +295,9 @@ def _header_strategy(config: dict[str, Any]) -> str:
 
 
 def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> list[Path]:
-    source = Image.open(config["_source_path"]).convert("RGB")
+    source = ImageOps.exif_transpose(
+        Image.open(config["_source_path"])
+    ).convert("RGB")
     page_config = config["page"]
     page_width = int(page_config.get("width", source.width))
     background = _rgb(page_config.get("background", [255, 255, 255]))
@@ -343,8 +352,11 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
         if include_chorus and config.get("chorus"):
             for block in config["chorus"]["blocks"]:
                 note_box = block["note_crop"]
-                lyric_box = block["lyric_row"]
-                height += (note_box[3] - note_box[1]) + _box_height(lyric_box)
+                height += note_box[3] - note_box[1]
+                height += sum(
+                    _box_height(lyric_box)
+                    for lyric_box in _block_lyric_boxes(block)
+                )
 
         page = Image.new("RGB", (page_width, height), background)
         draw = ImageDraw.Draw(page)
@@ -368,7 +380,7 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
                 page,
                 source,
                 system["note_crop"],
-                system["lyric_rows"][verse_index],
+                [system["lyric_rows"][verse_index]],
                 y,
                 draw,
                 system,
@@ -383,7 +395,7 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
                     page,
                     source,
                     block["note_crop"],
-                    block["lyric_row"],
+                    _block_lyric_boxes(block),
                     y,
                     draw,
                     None,
@@ -401,8 +413,11 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
         height = page_header_height + bottom_margin
         for block in config["chorus"]["blocks"]:
             note_box = block["note_crop"]
-            lyric_box = block["lyric_row"]
-            height += (note_box[3] - note_box[1]) + _box_height(lyric_box)
+            height += note_box[3] - note_box[1]
+            height += sum(
+                _box_height(lyric_box)
+                for lyric_box in _block_lyric_boxes(block)
+            )
 
         page = Image.new("RGB", (page_width, height), background)
         draw = ImageDraw.Draw(page)
@@ -419,7 +434,7 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
                 page,
                 source,
                 block["note_crop"],
-                block["lyric_row"],
+                _block_lyric_boxes(block),
                 y,
                 draw,
                 None,

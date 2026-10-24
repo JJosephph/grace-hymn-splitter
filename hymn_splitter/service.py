@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from . import __version__ as package_version
 from .auto_layout import detect_layout
@@ -44,7 +44,7 @@ def _find_matching_config(source_path: Path) -> Path | None:
     """Use a hand-tuned config for the bundled sample images."""
     source_path = source_path.resolve()
     try:
-        source_size = Image.open(source_path).size
+        source_size = ImageOps.exif_transpose(Image.open(source_path)).size
     except Exception:
         source_size = None
     for config_path in sorted(CONFIG_DIR.glob("*.json")):
@@ -148,7 +148,7 @@ def apply_build_options(
     config["header_strategy"] = (
         "full_first_page_then_compact"
         if keep_metadata_first_page
-        else "compact"
+        else "full"
     )
     config.setdefault("options", {})
     config["options"]["make_chorus_page"] = bool(
