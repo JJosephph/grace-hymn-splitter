@@ -9,7 +9,7 @@
 #define MyAppExeName "GraceHymnSplitter.exe"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "0.2.4"
+  #define MyAppVersion "0.2.5"
 #endif
 
 [Setup]
@@ -44,7 +44,7 @@ OutputBaseFilename=GraceHymnSplitter-v{#MyAppVersion}-setup-win64
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
-CloseApplications=yes
+CloseApplications=force
 RestartApplications=no
 SetupLogging=yes
 UninstallDisplayName={#MyAppName}
@@ -77,6 +77,23 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDi
 Filename: "{app}\{#MyAppExeName}"; Description: "启动 {#MyAppName}"; Flags: nowait postinstall skipifsilent
 
 [Code]
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+begin
+  // Older builds could leave the one-file launcher behind after the window closed.
+  // End that process before Restart Manager runs so upgrades do not wait or fail.
+  Exec(
+    ExpandConstant('{sys}\taskkill.exe'),
+    '/IM GraceHymnSplitter.exe /T /F',
+    '',
+    SW_HIDE,
+    ewWaitUntilTerminated,
+    ResultCode
+  );
+  Result := '';
+end;
+
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
   SelectedDir: String;

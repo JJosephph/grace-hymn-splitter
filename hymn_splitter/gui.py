@@ -1,8 +1,21 @@
 from __future__ import annotations
 
+import os
+import threading
+import time
 from pathlib import Path
 
 from .desktop_api import DesktopApi
+
+
+def _schedule_process_exit() -> None:
+    """Ensure the WebView2 process tree is not left behind after closing."""
+
+    def exit_after_close() -> None:
+        time.sleep(0.8)
+        os._exit(0)
+
+    threading.Thread(target=exit_after_close, daemon=True).start()
 
 
 def main() -> None:
@@ -30,6 +43,8 @@ def main() -> None:
         text_select=True,
     )
     api.attach_window(window)
+    window.events.closing += _schedule_process_exit
+    window.events.closed += _schedule_process_exit
     try:
         webview.start(
             gui="edgechromium",
