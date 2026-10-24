@@ -10,6 +10,7 @@ from PyInstaller.utils.hooks import (
 
 
 project_dir = Path(SPECPATH).resolve()
+icon_path = project_dir / "assets" / "branding" / "logo.ico"
 
 datas = [
     (str(project_dir / "VERSION"), "."),
@@ -53,6 +54,7 @@ exe = EXE(
     a.datas,
     [],
     name="GraceHymnSplitter",
+    icon=str(icon_path) if icon_path.is_file() else None,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

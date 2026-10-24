@@ -1,7 +1,6 @@
 import {
   FolderOpen,
   Heart,
-  Music2,
   RefreshCw,
   SlidersHorizontal,
   Upload,
@@ -14,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useAppStore } from "@/store/app-store"
 import { cn } from "@/lib/utils"
+import logo from "@/assets/logo.png"
 
 const steps = [
   { icon: Upload, label: "上传歌谱", value: 1 },
@@ -33,9 +33,11 @@ export function AppSidebar() {
   return (
     <aside className="flex h-full w-[264px] shrink-0 flex-col border-r bg-sidebar px-4 py-5">
       <div className="flex items-center gap-3 px-1">
-        <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Music2 className="size-4" />
-        </div>
+        <img
+          src={logo}
+          alt="恩典歌谱转换PPT大图"
+          className="size-10 shrink-0 rounded-[10px]"
+        />
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold">恩典歌谱</div>
           <div className="truncate text-xs text-muted-foreground">

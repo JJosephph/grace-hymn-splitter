@@ -8,7 +8,7 @@
 #define MyAppExeName "GraceHymnSplitter.exe"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "0.2.2"
+  #define MyAppVersion "0.2.3"
 #endif
 
 [Setup]
@@ -47,6 +47,8 @@ RestartApplications=no
 SetupLogging=yes
 UninstallDisplayName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
+SetupIconFile=..\assets\branding\logo.ico
+WizardSmallImageFile=..\assets\branding\logo-small.png
 LicenseFile=install-info.zh-CN.txt
 InfoAfterFile=install-finish.zh-CN.txt
 

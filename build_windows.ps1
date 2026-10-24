@@ -52,6 +52,10 @@ if (Test-Path -LiteralPath $FrontendDir) {
 }
 
 Write-Host "Building Windows portable release v$Version ..."
+& $PythonExe @PythonArgs (Join-Path $ProjectDir "tools\build_brand_assets.py")
+if ($LASTEXITCODE -ne 0) {
+    throw "Brand asset build failed with exit code $LASTEXITCODE."
+}
 & $PythonExe @PythonArgs -m PyInstaller --noconfirm --clean (Join-Path $ProjectDir "grace_hymn_splitter.spec")
 if ($LASTEXITCODE -ne 0) {
     throw "PyInstaller failed with exit code $LASTEXITCODE."
