@@ -11,14 +11,26 @@ if (-not $Version) {
 $PythonExe = $null
 $PythonArgs = @()
 
+$PythonCandidates = @()
+if ($env:HYMN_SPLITTER_PYTHON) {
+    $PythonCandidates += $env:HYMN_SPLITTER_PYTHON
+}
 foreach ($Candidate in @("python", "py")) {
     $Command = Get-Command $Candidate -ErrorAction SilentlyContinue
-    if (-not $Command) {
+    if ($Command) {
+        $PythonCandidates += $Command.Source
+    }
+}
+
+foreach ($Candidate in ($PythonCandidates | Select-Object -Unique)) {
+    try {
+        & $Candidate -c "import sys; print(sys.executable)" *> $null
+    }
+    catch {
         continue
     }
-    & $Command.Source -c "import sys; print(sys.executable)" *> $null
     if ($LASTEXITCODE -eq 0) {
-        $PythonExe = $Command.Source
+        $PythonExe = $Candidate
         break
     }
 }

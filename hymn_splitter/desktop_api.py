@@ -67,6 +67,7 @@ class DesktopApi:
     def __init__(self) -> None:
         self._window: Any = None
         self._lock = threading.RLock()
+        self._drop_handler_installed = False
         self._job: dict[str, Any] = {
             "status": "idle",
             "message": "等待制作",
@@ -78,6 +79,37 @@ class DesktopApi:
 
     def attach_window(self, window: Any) -> None:
         self._window = window
+
+    def install_drop_handler(self) -> None:
+        """Bridge native WebView2 drops to the React upload panel."""
+
+        if self._window is None or self._drop_handler_installed:
+            return
+
+        def attach() -> None:
+            from webview.dom import DOMEventHandler
+
+            for _ in range(30):
+                try:
+                    body = self._window.dom.body
+                    if body is not None:
+                        # Attach to the stable body node. The upload panel can
+                        # be replaced during React renders; a listener on the
+                        # old section would silently stop receiving drops.
+                        body.on(
+                            "drop",
+                            DOMEventHandler(
+                                self._handle_native_drop,
+                                prevent_default=True,
+                            ),
+                        )
+                        self._drop_handler_installed = True
+                        return
+                except Exception:
+                    pass
+                time.sleep(0.1)
+
+        threading.Thread(target=attach, daemon=True).start()
 
     # ---------- bootstrap and dialogs ----------
     def get_bootstrap(self) -> dict[str, Any]:
@@ -152,6 +184,33 @@ class DesktopApi:
             }
         except Exception as error:
             return {"ok": False, "error": str(error)}
+
+    def _handle_native_drop(self, event: Any) -> None:
+        response = self.on_drop(event)
+        if response.get("ok"):
+            payload = {
+                "ok": True,
+                "path": response.get("path", ""),
+                "name": response.get("name", ""),
+            }
+        else:
+            payload = {
+                "ok": False,
+                "error": response.get("error", "无法读取拖入的图片。"),
+            }
+
+        if self._window is None:
+            return
+        try:
+            script = (
+                "window.__graceHandleNativeDrop && "
+                "window.__graceHandleNativeDrop("
+                f"{json.dumps(payload, ensure_ascii=False)}"
+                ");"
+            )
+            self._window.evaluate_js(script)
+        except Exception:
+            pass
 
     def get_thumbnail(
         self,

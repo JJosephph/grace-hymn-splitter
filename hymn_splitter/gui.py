@@ -43,6 +43,7 @@ def main() -> None:
         text_select=True,
     )
     api.attach_window(window)
+    window.events.loaded += api.install_drop_handler
     window.events.closing += _schedule_process_exit
     window.events.closed += _schedule_process_exit
     try:

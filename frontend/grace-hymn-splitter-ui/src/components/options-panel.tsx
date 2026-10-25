@@ -11,10 +11,8 @@ import { useAppStore, type BoldMode } from "@/store/app-store"
 export function OptionsPanel() {
   const boldMode = useAppStore((state) => state.boldMode)
   const keepMetadata = useAppStore((state) => state.keepMetadata)
-  const makeChorus = useAppStore((state) => state.makeChorus)
   const setBoldMode = useAppStore((state) => state.setBoldMode)
   const setKeepMetadata = useAppStore((state) => state.setKeepMetadata)
-  const setMakeChorus = useAppStore((state) => state.setMakeChorus)
 
   return (
     <section className="space-y-4">
@@ -55,18 +53,6 @@ export function OptionsPanel() {
             id="keep-metadata"
             checked={keepMetadata}
             onCheckedChange={setKeepMetadata}
-          />
-        </Field>
-
-        <Field orientation="horizontal" className="py-4">
-          <div className="flex items-center gap-2.5">
-            <Layers3 className="size-4 text-muted-foreground" />
-            <FieldLabel htmlFor="make-chorus">副歌单独成页</FieldLabel>
-          </div>
-          <Switch
-            id="make-chorus"
-            checked={makeChorus}
-            onCheckedChange={setMakeChorus}
           />
         </Field>
       </div>

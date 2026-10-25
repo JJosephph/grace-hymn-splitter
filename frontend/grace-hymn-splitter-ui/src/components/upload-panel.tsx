@@ -1,14 +1,27 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { FileImage, RotateCcw, UploadCloud } from "lucide-react"
 import { toast } from "sonner"
-import { useDropzone, type DropEvent } from "react-dropzone"
+import { useDropzone } from "react-dropzone"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { callDesktop } from "@/lib/desktop-api"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/app-store"
+
+type NativeDropResponse = {
+  ok: boolean
+  path?: string
+  name?: string
+  error?: string
+}
+
+declare global {
+  interface Window {
+    __graceHandleNativeDrop?: (response: NativeDropResponse) => void
+  }
+}
 
 const acceptedTypes = {
   "image/png": [".png"],
@@ -24,32 +37,45 @@ export function UploadPanel() {
   const chooseImage = useAppStore((state) => state.chooseImage)
   const [dimensions, setDimensions] = useState("")
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: acceptedTypes,
-    multiple: false,
-    noClick: true,
-    onDrop: async (_acceptedFiles, _rejections, event: DropEvent) => {
-      const response = await callDesktop<{
-        path: string
-        url: string
-        name?: string
-      }>("on_drop", event)
-
+  useEffect(() => {
+    const handleNativeDrop = (response: NativeDropResponse) => {
       if (!response.ok || !response.path) {
         toast.error(response.error || "无法读取拖入的图片。")
         return
       }
 
-      setImage({
-        path: response.path,
-        url: response.url,
-        name: response.name || response.path.split(/[\\/]/).pop() || "歌谱图片",
-      })
-    },
+      const path = response.path
+      const name =
+        response.name || path.split(/[\\/]/).pop() || "歌谱图片"
+      setImage({ path, name, url: "" })
+
+      void callDesktop<{ url: string }>("get_thumbnail", path, 960).then(
+        (thumbnail) => {
+          if (thumbnail.ok && thumbnail.url) {
+            useAppStore.getState().setImage({
+              path,
+              name,
+              url: thumbnail.url,
+            })
+          }
+        },
+      )
+    }
+
+    window.__graceHandleNativeDrop = handleNativeDrop
+    return () => {
+      delete window.__graceHandleNativeDrop
+    }
+  }, [setImage])
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: acceptedTypes,
+    multiple: false,
+    noClick: true,
   })
 
   return (
-    <section className="space-y-4">
+    <section id="upload-drop-zone" className="space-y-4">
       <div className="flex items-end justify-between">
         <div>
           <div className="text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">

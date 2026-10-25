@@ -235,7 +235,7 @@ def _looks_like_sparse_lyric_run(
 ) -> bool:
     """Recognize a short final lyric line with lighter ink coverage."""
     height = int(metrics["height"])
-    if not 45 <= height <= 90:
+    if not 38 <= height <= 95:
         return False
     coverage = float(metrics["coverage"])
     if not 0.20 <= coverage < 0.30:
@@ -355,12 +355,28 @@ def _drop_leading_staff_run(group: list[dict[str, Any]]) -> list[dict[str, Any]]
     much denser than the merged band; that contrast gives us a safe cleanup.
     """
     cleaned = list(group)
+
+    def looks_like_staff_edge(
+        edge: dict[str, Any],
+        neighbor: dict[str, Any],
+    ) -> bool:
+        edge_tall = int(edge["tall_columns"])
+        neighbor_tall = int(neighbor["tall_columns"])
+        if edge_tall > max(12, int(neighbor_tall * 0.36)):
+            return False
+        edge_coverage = float(edge["coverage"])
+        neighbor_coverage = float(neighbor["coverage"])
+        edge_height = int(edge["height"])
+        neighbor_height = int(neighbor["height"])
+        return (
+            edge_coverage <= neighbor_coverage * 0.93
+            or edge_height >= neighbor_height * 1.12
+        )
+
     while len(cleaned) >= 2:
         first = cleaned[0]
         following = cleaned[1]
-        first_tall = int(first["tall_columns"])
-        following_tall = int(following["tall_columns"])
-        if first_tall <= max(12, int(following_tall * 0.36)):
+        if looks_like_staff_edge(first, following):
             cleaned = cleaned[1:]
             continue
         break
@@ -368,9 +384,7 @@ def _drop_leading_staff_run(group: list[dict[str, Any]]) -> list[dict[str, Any]]
     while len(cleaned) >= 2:
         last = cleaned[-1]
         previous = cleaned[-2]
-        last_tall = int(last["tall_columns"])
-        previous_tall = int(previous["tall_columns"])
-        if last_tall <= max(12, int(previous_tall * 0.36)):
+        if looks_like_staff_edge(last, previous):
             cleaned = cleaned[:-1]
             continue
         break
@@ -511,6 +525,48 @@ def _find_double_bar_split(
     return int((first + second) / 2)
 
 
+def _find_gap_split(
+    gray: Image.Image,
+    row: dict[str, Any],
+    *,
+    image_width: int,
+) -> int | None:
+    """Find the widest meaningful gap between two lyric phrases."""
+    top = max(0, int(row["top"]) - 3)
+    bottom = min(gray.height, int(row["bottom"]) + 4)
+    if bottom <= top:
+        return None
+
+    crop = gray.crop((0, top, image_width, bottom))
+    pixels = crop.load()
+    ink_columns = [
+        any(pixels[x, y] < 185 for y in range(crop.height))
+        for x in range(image_width)
+    ]
+
+    ink_positions = [x for x, has_ink in enumerate(ink_columns) if has_ink]
+    if len(ink_positions) < 2:
+        return None
+
+    minimum_gap = max(60, int(image_width * 0.075))
+    maximum_gap = int(image_width * 0.42)
+    gaps: list[tuple[int, int, int]] = []
+    for first, second in zip(ink_positions, ink_positions[1:]):
+        gap = second - first - 1
+        if minimum_gap <= gap <= maximum_gap:
+            gaps.append((gap, first, second))
+    if not gaps:
+        return None
+
+    gap, first, second = max(gaps)
+    split_x = int((first + second) / 2)
+    if not (image_width * 0.10 <= split_x <= image_width * 0.90):
+        return None
+    if first < image_width * 0.06 or image_width - second < image_width * 0.10:
+        return None
+    return split_x
+
+
 def _ink_ratio(
     gray: Image.Image,
     box: tuple[int, int, int, int],
@@ -529,6 +585,26 @@ def _ink_ratio(
             if pixels[x, y] < threshold:
                 dark += 1
     return dark / max(1, crop.width * crop.height)
+
+
+def _looks_like_staff_anchor(
+    run: dict[str, Any],
+    *,
+    image_width: int,
+) -> bool:
+    height = int(run["height"])
+    span_ratio = float(run["span_ratio"])
+    coverage = float(run["coverage"])
+    tall_columns = int(run["tall_columns"])
+    return (
+        25 <= height <= 125
+        and span_ratio >= 0.55
+        and coverage >= 0.20
+        and (
+            tall_columns >= max(12, int(image_width * 0.008))
+            or coverage >= 0.38
+        )
+    )
 
 
 def _find_shared_verse_chorus_split(
@@ -556,7 +632,11 @@ def _find_shared_verse_chorus_split(
             if int(item["top"]) > last_main_bottom + 20
             and int(item["top"]) < last_main_bottom + 720
             and int(item["height"]) >= 20
-            and float(item["span_ratio"]) >= 0.35
+            and float(item["span_ratio"]) >= 0.50
+            and (
+                float(item["coverage"]) >= 0.30
+                or _looks_like_note_run(item, image_width)
+            )
         ),
         key=lambda item: int(item["top"]),
     )
@@ -566,45 +646,55 @@ def _find_shared_verse_chorus_split(
             note_run,
             image_width=image_width,
         )
-        if split_x is None or not (image_width * 0.12 <= split_x <= image_width * 0.84):
-            continue
-
         note_bottom = int(note_run["bottom"])
-        later_lyrics = sorted(
+        next_staff_top: int | None = None
+        for later_staff in sorted(note_runs, key=lambda item: int(item["top"])):
+            if int(later_staff["top"]) <= note_bottom + 20:
+                continue
+            if not _looks_like_staff_anchor(
+                later_staff,
+                image_width=image_width,
+            ):
+                continue
+            if any(
+                int(later_lyric["top"]) > int(later_staff["bottom"]) + 10
+                and int(later_lyric["top"]) - int(later_staff["bottom"]) <= 170
+                and 24 <= int(later_lyric["height"]) <= 140
+                and float(later_lyric["span_ratio"]) >= 0.45
+                and float(later_lyric["coverage"]) >= 0.18
+                for later_lyric in lyric_runs
+            ):
+                next_staff_top = int(later_staff["top"])
+                break
+
+        rows = sorted(
             (
                 item
                 for item in lyric_runs
-                if int(item["top"]) > note_bottom + 20
-                and _looks_like_lyric_run(item)
-                and 45 <= int(item["height"]) <= 90
-                and float(item["coverage"]) >= 0.30
+                if int(item["top"]) >= note_bottom - 8
+                and int(item["top"]) <= note_bottom + 260
+                and (
+                    next_staff_top is None
+                    or int(item["top"]) < next_staff_top - 6
+                )
+                and 24 <= int(item["height"]) <= 120
+                and float(item["span_ratio"]) >= 0.15
             ),
             key=lambda item: int(item["top"]),
         )
-        if len(later_lyrics) < 2:
-            continue
-        next_chorus_lyric = later_lyrics[1]
-        next_note_range = _merge_note_runs(
-            note_runs,
-            lyric_top=int(next_chorus_lyric["top"]),
-            lower_bound=max(0, int(next_chorus_lyric["top"]) - 300),
-            image_width=image_width,
-        )
-        if next_note_range is None:
-            continue
-        next_note_top = int(next_note_range[0])
-        rows = [
-            item
-            for item in lyric_runs
-            if int(item["top"]) >= note_bottom - 8
-            and int(item["bottom"]) < next_note_top - 6
-            and 28 <= int(item["height"]) <= 115
-            and float(item["span_ratio"]) >= 0.15
-        ]
         if len(rows) < min_rows:
             continue
 
         first_row = rows[0]
+        if split_x is None:
+            split_x = _find_gap_split(
+                lyric_gray,
+                first_row,
+                image_width=image_width,
+            )
+        if split_x is None or not (image_width * 0.10 <= split_x <= image_width * 0.90):
+            continue
+
         row_top = max(0, int(first_row["top"]) - 3)
         row_bottom = min(image_height, int(first_row["bottom"]) + 4)
         left_ink = _ink_ratio(
@@ -619,6 +709,17 @@ def _find_shared_verse_chorus_split(
         # ordinary double bar at the end of a staff, where the right side
         # is mostly whitespace.
         if left_ink < 0.025 or right_ink < 0.025:
+            continue
+
+        verse_only_rows = [
+            item
+            for item in rows[1:]
+            if float(item["span_ratio"]) <= 0.35
+            and float(item["coverage"]) >= 0.08
+        ]
+        if not verse_only_rows:
+            # A shared verse/chorus staff must be followed by verse rows that
+            # occupy only the left side. A normal full-width chorus does not.
             continue
 
         return note_run, split_x, rows
@@ -661,6 +762,98 @@ def _find_content_cutoff(
     return None
 
 
+def _build_tail_chorus_blocks(
+    runs: list[dict[str, Any]],
+    *,
+    start_y: int,
+    image_width: int,
+    image_height: int,
+) -> list[dict[str, Any]]:
+    """Pair remaining staff and lyric bands into chorus blocks."""
+    tail = sorted(
+        (
+            item
+            for item in runs
+            if int(item["top"]) > start_y + 20
+        ),
+        key=lambda item: int(item["top"]),
+    )
+    blocks: list[dict[str, Any]] = []
+    index = 0
+    while index < len(tail):
+        staff = tail[index]
+        if not _looks_like_staff_anchor(
+            staff,
+            image_width=image_width,
+        ):
+            index += 1
+            continue
+
+        lyric_index = index + 1
+        while (
+            lyric_index < len(tail)
+            and int(tail[lyric_index]["top"]) - int(staff["bottom"]) <= 170
+        ):
+            lyric = tail[lyric_index]
+            lyric_height = int(lyric["height"])
+            if (
+                24 <= lyric_height <= 140
+                and float(lyric["span_ratio"]) >= 0.45
+                and float(lyric["coverage"]) >= 0.18
+            ):
+                note_top = max(0, int(staff["top"]) - 12)
+                note_bottom = min(
+                    image_height,
+                    int(lyric["top"]) - 2,
+                    int(staff["bottom"]) + 8,
+                )
+                if note_bottom - note_top >= 24:
+                    blocks.append(
+                        {
+                            "note_crop": [0, note_top, image_width, note_bottom],
+                            "lyric_rows": [
+                                [
+                                    max(0, int(lyric["top"]) - 3),
+                                    min(
+                                        image_height,
+                                        int(lyric["bottom"]) + 4,
+                                    ),
+                                ]
+                            ],
+                        }
+                    )
+                    index = lyric_index + 1
+                    break
+            lyric_index += 1
+        else:
+            index += 1
+
+    return blocks
+
+
+def _partition_verse_groups(
+    groups: list[list[dict[str, Any]]],
+    *,
+    first_count: int,
+) -> tuple[list[list[dict[str, Any]]], list[list[dict[str, Any]]]]:
+    """Split repeated verse systems from chorus groups at the tail."""
+    full_group_indices = [
+        index for index, group in enumerate(groups) if len(group) == first_count
+    ]
+    if not full_group_indices:
+        raise AutoLayoutError("没有识别到完整的主歌段落。")
+
+    first_full_group = full_group_indices[0]
+    last_full_group = full_group_indices[-1]
+    # Keep irregular lyric groups between the first and last full verse
+    # systems. A short group in the middle is often a projection split
+    # artifact, not the start of a chorus; treating it as a chorus used to
+    # turn the final verse into a false chorus page.
+    main_groups = groups[first_full_group : last_full_group + 1]
+    remaining = groups[last_full_group + 1 :]
+    return main_groups, remaining
+
+
 def _build_auto_config(
     source_path: Path,
     image: Image.Image,
@@ -695,23 +888,10 @@ def _build_auto_config(
         key=lambda count: (viable_counts[count], count),
     )
 
-    main_groups: list[list[dict[str, Any]]] = []
-    remaining: list[list[dict[str, Any]]] = []
-    started = False
-    reached_chorus = False
-    for group in groups:
-        if not started:
-            if len(group) != first_count:
-                continue
-            started = True
-            main_groups.append(group)
-        elif not reached_chorus and len(group) == first_count:
-            main_groups.append(group)
-        else:
-            reached_chorus = True
-            remaining.append(group)
-    if not main_groups:
-        raise AutoLayoutError("没有识别到完整的主歌段落。")
+    main_groups, remaining = _partition_verse_groups(
+        groups,
+        first_count=first_count,
+    )
 
     gray = image.convert("L")
     systems: list[dict[str, Any]] = []
@@ -900,22 +1080,14 @@ def _build_auto_config(
         for item in group
     }
     grouped_runs.update(shared_lyric_ids)
-    singleton_candidates = [
+    unassigned_runs = [
         item
         for item in lyric_runs
         if id(item) not in grouped_runs
         and int(item["top"]) > last_main_bottom + 20
         and (content_cutoff is None or int(item["top"]) < content_cutoff)
-        and 45 <= int(item["height"]) <= 90
-        and (
-            (
-                _looks_like_lyric_run(item)
-                and float(item["coverage"]) >= 0.30
-            )
-            or _looks_like_sparse_lyric_run(item, image_width=width)
-        )
     ]
-    chorus_groups = [*remaining, *([item] for item in singleton_candidates)]
+    chorus_groups = list(remaining)
     for group in chorus_groups:
         lyric_top = int(group[0]["top"])
         note_range = _merge_note_runs(
@@ -946,6 +1118,14 @@ def _build_auto_config(
                 "lyric_rows": lyric_rows,
             }
         )
+    chorus_blocks.extend(
+        _build_tail_chorus_blocks(
+            unassigned_runs,
+            start_y=last_main_bottom,
+            image_width=width,
+            image_height=image.height,
+        )
+    )
     if chorus_blocks:
         chorus = {"label": "副歌", "blocks": chorus_blocks}
 
