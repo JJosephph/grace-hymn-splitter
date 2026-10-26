@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { callDesktop, fileUrl } from "@/lib/desktop-api"
 
 export type BoldMode = "none" | "light" | "strong"
+export type LineSpacing = "compact" | "normal" | "relaxed"
 export type JobStatus = "idle" | "running" | "completed" | "failed"
 
 export type SelectedImage = {
@@ -63,6 +64,7 @@ type AppStore = {
   songTitle: string
   boldMode: BoldMode
   keepMetadata: boolean
+  lineSpacing: LineSpacing
   job: JobState
   initialize: () => Promise<void>
   setImage: (image: SelectedImage) => void
@@ -72,6 +74,7 @@ type AppStore = {
   setSongTitle: (value: string) => void
   setBoldMode: (value: BoldMode) => void
   setKeepMetadata: (value: boolean) => void
+  setLineSpacing: (value: LineSpacing) => void
   chooseImage: () => Promise<void>
   chooseOutputRoot: () => Promise<void>
   startBuild: () => Promise<void>
@@ -117,6 +120,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   songTitle: "",
   boldMode: "none",
   keepMetadata: true,
+  lineSpacing: "normal",
   job: initialJob,
 
   initialize: async () => {
@@ -138,6 +142,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
       settings.bold_mode === "light" || settings.bold_mode === "strong"
         ? settings.bold_mode
         : "none"
+    const lineSpacing =
+      settings.line_spacing === "compact" ||
+      settings.line_spacing === "relaxed"
+        ? settings.line_spacing
+        : "normal"
 
     set({
       bootstrapped: true,
@@ -151,6 +160,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       outputRoot: response.default_output_root || "",
       boldMode,
       keepMetadata: settings.keep_metadata_first_page !== false,
+      lineSpacing,
     })
   },
 
@@ -175,6 +185,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setSongTitle: (value) => set({ songTitle: value }),
   setBoldMode: (value) => set({ boldMode: value }),
   setKeepMetadata: (value) => set({ keepMetadata: value }),
+  setLineSpacing: (value) => set({ lineSpacing: value }),
 
   chooseImage: async () => {
     const response = await callDesktop<{ path: string; url: string }>(
@@ -220,6 +231,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       state.boldMode,
       state.keepMetadata,
       true,
+      state.lineSpacing,
     )
 
     if (!response.ok) {

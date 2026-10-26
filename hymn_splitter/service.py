@@ -138,6 +138,7 @@ def apply_build_options(
     bold_mode: str = "none",
     keep_metadata_first_page: bool = True,
     make_chorus_page: bool = True,
+    line_spacing: str = "normal",
 ) -> dict[str, Any]:
     config["bold_mode"] = str(bold_mode or "none").strip().lower()
     config["bold_strength"] = {
@@ -151,6 +152,10 @@ def apply_build_options(
         else "full"
     )
     config.setdefault("options", {})
+    spacing_mode = str(line_spacing or "normal").strip().lower()
+    if spacing_mode not in {"compact", "normal", "relaxed"}:
+        spacing_mode = "normal"
+    config["options"]["line_spacing"] = spacing_mode
     config["options"]["make_chorus_page"] = bool(
         make_chorus_page and bool(config.get("chorus"))
     )
@@ -169,6 +174,7 @@ def build_from_source(
     bold_mode: str = "none",
     keep_metadata_first_page: bool = True,
     make_chorus_page: bool = True,
+    line_spacing: str = "normal",
 ) -> dict[str, Any]:
     config, layout_mode = prepare_layout(
         source_path,
@@ -181,6 +187,7 @@ def build_from_source(
         bold_mode=bold_mode,
         keep_metadata_first_page=keep_metadata_first_page,
         make_chorus_page=make_chorus_page,
+        line_spacing=line_spacing,
     )
 
     output_dir = Path(config["_output_dir"])

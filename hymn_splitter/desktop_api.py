@@ -235,6 +235,7 @@ class DesktopApi:
         bold_mode: str = "none",
         keep_metadata_first_page: bool = True,
         make_chorus_page: bool = True,
+        line_spacing: str = "normal",
     ) -> dict[str, Any]:
         with self._lock:
             if self._job.get("status") == "running":
@@ -259,6 +260,7 @@ class DesktopApi:
                 bold_mode,
                 bool(keep_metadata_first_page),
                 bool(make_chorus_page),
+                line_spacing,
             ),
             daemon=True,
         )
@@ -274,6 +276,7 @@ class DesktopApi:
         bold_mode: str,
         keep_metadata_first_page: bool,
         make_chorus_page: bool,
+        line_spacing: str,
     ) -> None:
         try:
             self._set_job(message="正在识别乐谱行…", progress=28)
@@ -285,6 +288,7 @@ class DesktopApi:
                 bold_mode=bold_mode,
                 keep_metadata_first_page=keep_metadata_first_page,
                 make_chorus_page=make_chorus_page,
+                line_spacing=line_spacing,
             )
             previews = [
                 {
@@ -325,6 +329,7 @@ class DesktopApi:
                     "bold_mode": bold_mode,
                     "keep_metadata_first_page": keep_metadata_first_page,
                     "make_chorus_page": make_chorus_page,
+                    "line_spacing": line_spacing,
                 }
             )
         except Exception as error:
@@ -463,6 +468,7 @@ class DesktopApi:
             "bold_mode",
             "keep_metadata_first_page",
             "make_chorus_page",
+            "line_spacing",
         }
         for key, value in (values or {}).items():
             if key in allowed:

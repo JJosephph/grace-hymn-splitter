@@ -71,7 +71,7 @@
 ### 方式一：下载安装版
 
 1. 打开本项目的 GitHub Releases 页面。
-2. 下载 `GraceHymnSplitter-v0.2.9-setup-win64.exe`。
+2. 下载 `GraceHymnSplitter-v0.3.0-setup-win64.exe`。
 3. 双击安装，按中文向导完成即可。默认安装到当前用户目录，不需要管理员权限；也可以点击“浏览”安装到 D 盘。
 4. 安装完成后启动软件，在窗口里选择歌谱、确认诗歌名和输出目录，然后点击“开始制作”。
 
@@ -111,6 +111,7 @@ py run.py --cli auto samples/665-当转眼仰望耶稣.png --output configs/665-
 3. **输出目录**：选择输出根目录。软件会在里面自动建立 `<编号-诗歌名>` 子目录。
 4. **制作选项**：
    - `歌词加粗`：如果原谱歌词已经足够粗，建议保持原样。
+   - `行间距`：可选“稍紧凑 / 正常 / 稍稀疏”。如果拆分后觉得歌谱行之间太挤，建议选“正常”或“稍稀疏”。
    - `只保留第一页标题元信息`：默认打开。第一页保留完整标题，后续页只保留段号。
    - 副歌识别成功后会自动单独成页，不需要额外设置。
 5. 点击“开始制作”，完成后可以在右侧预览，也可以点击“打开输出目录”。
@@ -133,6 +134,12 @@ py run.py --cli auto samples/665-当转眼仰望耶稣.png --output configs/665-
 - **明显加粗**：适合投影后仍然觉得字轻、希望歌词更抢眼的情况。
 
 不建议所有歌谱都强制加粗。扫描件本身已经比较黑时，继续加粗可能让笔画粘连。
+
+## 行间距怎么选
+
+- **稍紧凑**：适合希望一页里尽量放下更多歌谱行的情况。
+- **正常**：默认档位，适合大多数诗歌 PPT。
+- **稍稀疏**：适合投影后觉得行与行之间仍然拥挤、希望视觉更舒展的情况。
 
 ## 自动识别和高级配置
 
@@ -230,10 +237,10 @@ powershell -ExecutionPolicy Bypass -File build_windows.ps1
 
 构建结果会生成在 `release/` 目录，包含：
 
-- `GraceHymnSplitter-v0.2.9-setup-win64.exe`（推荐下载）
-- `GraceHymnSplitter-v0.2.9-setup-win64.exe.sha256`
+- `GraceHymnSplitter-v0.3.0-setup-win64.exe`（推荐下载）
+- `GraceHymnSplitter-v0.3.0-setup-win64.exe.sha256`
 
-推送形如 `v0.2.9` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
+推送形如 `v0.3.0` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
 
 ## 开源说明
 

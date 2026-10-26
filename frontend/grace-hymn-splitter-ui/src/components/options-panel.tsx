@@ -1,4 +1,4 @@
-import { Type, Layers3 } from "lucide-react"
+import { Layers3, Rows3, Type } from "lucide-react"
 
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Switch } from "@/components/ui/switch"
@@ -6,13 +6,19 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group"
-import { useAppStore, type BoldMode } from "@/store/app-store"
+import {
+  useAppStore,
+  type BoldMode,
+  type LineSpacing,
+} from "@/store/app-store"
 
 export function OptionsPanel() {
   const boldMode = useAppStore((state) => state.boldMode)
   const keepMetadata = useAppStore((state) => state.keepMetadata)
+  const lineSpacing = useAppStore((state) => state.lineSpacing)
   const setBoldMode = useAppStore((state) => state.setBoldMode)
   const setKeepMetadata = useAppStore((state) => state.setKeepMetadata)
+  const setLineSpacing = useAppStore((state) => state.setLineSpacing)
 
   return (
     <section className="space-y-4">
@@ -39,6 +45,26 @@ export function OptionsPanel() {
             <ToggleGroupItem value="none">原样</ToggleGroupItem>
             <ToggleGroupItem value="light">轻度</ToggleGroupItem>
             <ToggleGroupItem value="strong">明显</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 py-4">
+          <div className="flex items-center gap-2.5">
+            <Rows3 className="size-4 text-muted-foreground" />
+            <span className="text-sm font-medium">行间距</span>
+          </div>
+          <ToggleGroup
+            type="single"
+            value={lineSpacing}
+            onValueChange={(value) =>
+              value && setLineSpacing(value as LineSpacing)
+            }
+            variant="outline"
+            size="sm"
+          >
+            <ToggleGroupItem value="compact">稍紧凑</ToggleGroupItem>
+            <ToggleGroupItem value="normal">正常</ToggleGroupItem>
+            <ToggleGroupItem value="relaxed">稍稀疏</ToggleGroupItem>
           </ToggleGroup>
         </div>
 

@@ -294,6 +294,19 @@ def _header_strategy(config: dict[str, Any]) -> str:
     ).strip().lower()
 
 
+def _line_gap(config: dict[str, Any], page_width: int) -> int:
+    """Return the extra vertical gap between score systems."""
+    mode = str(
+        config.get("options", {}).get("line_spacing", "normal")
+    ).strip().lower()
+    ratio = {
+        "compact": 0.008,
+        "normal": 0.018,
+        "relaxed": 0.032,
+    }.get(mode, 0.018)
+    return max(4, int(page_width * ratio))
+
+
 def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> list[Path]:
     source = ImageOps.exif_transpose(
         Image.open(config["_source_path"])
@@ -317,6 +330,7 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
             max(92, min(180, int(page_width * 0.065))),
         )
     )
+    line_gap = _line_gap(config, page_width)
 
     output_dir: Path = config["_output_dir"]
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -345,11 +359,15 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
         ) or header_strategy == "full"
         page_header_height = header_height if use_full_header else compact_header_height
         height = page_header_height + bottom_margin
+        height += max(0, len(config["systems"]) - 1) * line_gap
         for system in config["systems"]:
             note_box = system["note_crop"]
             lyric_box = system["lyric_rows"][verse_index]
             height += (note_box[3] - note_box[1]) + _box_height(lyric_box)
         if include_chorus and config.get("chorus"):
+            if config["systems"]:
+                height += line_gap
+            height += max(0, len(config["chorus"]["blocks"]) - 1) * line_gap
             for block in config["chorus"]["blocks"]:
                 note_box = block["note_crop"]
                 height += note_box[3] - note_box[1]
@@ -375,7 +393,9 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
             )
 
         y = page_header_height
-        for system in config["systems"]:
+        for system_index, system in enumerate(config["systems"]):
+            if system_index:
+                y += line_gap
             y = _paste_block(
                 page,
                 source,
@@ -390,7 +410,9 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
             )
 
         if include_chorus and config.get("chorus"):
-            for block in config["chorus"]["blocks"]:
+            for block_index, block in enumerate(config["chorus"]["blocks"]):
+                if config["systems"] or block_index:
+                    y += line_gap
                 y = _paste_block(
                     page,
                     source,
@@ -411,6 +433,7 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
     if make_chorus_page and config.get("chorus"):
         page_header_height = compact_header_height
         height = page_header_height + bottom_margin
+        height += max(0, len(config["chorus"]["blocks"]) - 1) * line_gap
         for block in config["chorus"]["blocks"]:
             note_box = block["note_crop"]
             height += note_box[3] - note_box[1]
@@ -429,7 +452,9 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
             page_header_height,
         )
         y = page_header_height
-        for block in config["chorus"]["blocks"]:
+        for block_index, block in enumerate(config["chorus"]["blocks"]):
+            if block_index:
+                y += line_gap
             y = _paste_block(
                 page,
                 source,
