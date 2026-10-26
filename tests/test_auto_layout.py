@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from hymn_splitter.auto_layout import (
+    _build_tail_chorus_blocks,
     _drop_leading_staff_run,
     _partition_verse_groups,
 )
@@ -49,6 +50,58 @@ class DropLeadingStaffRunTest(unittest.TestCase):
             {"top": 1253, "bottom": 1329, "height": 77, "coverage": 0.557, "tall_columns": 139},
         ]
         self.assertEqual(len(_drop_leading_staff_run(group)), 2)
+
+
+class TailChorusTest(unittest.TestCase):
+    def test_short_final_phrase_is_kept(self) -> None:
+        runs = [
+            {
+                "top": 957,
+                "bottom": 1005,
+                "height": 49,
+                "coverage": 0.494,
+                "span_ratio": 0.906,
+                "tall_columns": 21,
+                "max_vertical_ratio": 0.776,
+            },
+            {
+                "top": 1029,
+                "bottom": 1059,
+                "height": 31,
+                "coverage": 0.531,
+                "span_ratio": 0.907,
+                "tall_columns": 16,
+                "max_vertical_ratio": 1.0,
+            },
+            {
+                "top": 1110,
+                "bottom": 1159,
+                "height": 50,
+                "coverage": 0.251,
+                "span_ratio": 0.487,
+                "tall_columns": 17,
+                "max_vertical_ratio": 0.76,
+            },
+            {
+                "top": 1184,
+                "bottom": 1212,
+                "height": 29,
+                "coverage": 0.235,
+                "span_ratio": 0.366,
+                "tall_columns": 5,
+                "max_vertical_ratio": 1.0,
+            },
+        ]
+
+        blocks = _build_tail_chorus_blocks(
+            runs,
+            start_y=900,
+            image_width=950,
+            image_height=1258,
+        )
+
+        self.assertEqual(len(blocks), 2)
+        self.assertEqual(blocks[1]["lyric_rows"], [[1181, 1216]])
 
 
 if __name__ == "__main__":

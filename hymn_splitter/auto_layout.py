@@ -607,6 +607,28 @@ def _looks_like_staff_anchor(
     )
 
 
+def _looks_like_tail_staff(
+    run: dict[str, Any],
+    *,
+    image_width: int,
+) -> bool:
+    """Recognize a chorus staff, including a short final phrase."""
+    height = int(run["height"])
+    span_ratio = float(run["span_ratio"])
+    coverage = float(run["coverage"])
+    tall_columns = int(run["tall_columns"])
+    max_vertical_ratio = float(run.get("max_vertical_ratio", 0.0))
+    return (
+        36 <= height <= 150
+        and span_ratio >= 0.38
+        and coverage >= 0.20
+        and (
+            tall_columns >= max(10, int(image_width * 0.008))
+            or max_vertical_ratio >= 0.72
+        )
+    )
+
+
 def _find_shared_verse_chorus_split(
     note_gray: Image.Image,
     lyric_gray: Image.Image,
@@ -782,7 +804,7 @@ def _build_tail_chorus_blocks(
     index = 0
     while index < len(tail):
         staff = tail[index]
-        if not _looks_like_staff_anchor(
+        if not _looks_like_tail_staff(
             staff,
             image_width=image_width,
         ):
@@ -797,9 +819,10 @@ def _build_tail_chorus_blocks(
             lyric = tail[lyric_index]
             lyric_height = int(lyric["height"])
             if (
-                24 <= lyric_height <= 140
-                and float(lyric["span_ratio"]) >= 0.45
-                and float(lyric["coverage"]) >= 0.18
+                20 <= lyric_height <= 140
+                and lyric_height <= max(48, int(int(staff["height"]) * 1.10))
+                and float(lyric["span_ratio"]) >= 0.12
+                and float(lyric["coverage"]) >= 0.12
             ):
                 note_top = max(0, int(staff["top"]) - 12)
                 note_bottom = min(

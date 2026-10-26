@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "grace-hymn-splitter"
-version = "0.2.8"
+version = "0.2.9"
 description = "把多段式简谱拆成适合 PPT 投影的分段大图。"
 readme = "README.md"
 requires-python = ">=3.10"

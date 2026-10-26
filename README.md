@@ -71,7 +71,7 @@
 ### 方式一：下载安装版
 
 1. 打开本项目的 GitHub Releases 页面。
-2. 下载 `GraceHymnSplitter-v0.2.8-setup-win64.exe`。
+2. 下载 `GraceHymnSplitter-v0.2.9-setup-win64.exe`。
 3. 双击安装，按中文向导完成即可。默认安装到当前用户目录，不需要管理员权限；也可以点击“浏览”安装到 D 盘。
 4. 安装完成后启动软件，在窗口里选择歌谱、确认诗歌名和输出目录，然后点击“开始制作”。
 
@@ -230,10 +230,10 @@ powershell -ExecutionPolicy Bypass -File build_windows.ps1
 
 构建结果会生成在 `release/` 目录，包含：
 
-- `GraceHymnSplitter-v0.2.8-setup-win64.exe`（推荐下载）
-- `GraceHymnSplitter-v0.2.8-setup-win64.exe.sha256`
+- `GraceHymnSplitter-v0.2.9-setup-win64.exe`（推荐下载）
+- `GraceHymnSplitter-v0.2.9-setup-win64.exe.sha256`
 
-推送形如 `v0.2.8` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
+推送形如 `v0.2.9` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
 
 ## 开源说明
 
