@@ -71,7 +71,7 @@
 ### 方式一：下载安装版
 
 1. 打开本项目的 GitHub Releases 页面。
-2. 下载 `GraceHymnSplitter-v0.3.0-setup-win64.exe`。
+2. 下载 `GraceHymnSplitter-v0.3.1-setup-win64.exe`。
 3. 双击安装，按中文向导完成即可。默认安装到当前用户目录，不需要管理员权限；也可以点击“浏览”安装到 D 盘。
 4. 安装完成后启动软件，在窗口里选择歌谱、确认诗歌名和输出目录，然后点击“开始制作”。
 
@@ -147,9 +147,12 @@ py run.py --cli auto samples/665-当转眼仰望耶稣.png --output configs/665-
 
 - 页眉标题区域；
 - 每一组简谱行；
+- 五线谱/简谱复合版式中的谱表、和弦行与低音谱表；
 - 主歌歌词行；
 - 副歌行；
 - 段数。
+
+识别在归一化宽度上进行，手机截图和高分辨率扫描使用同一套结构规则；简谱版式在原始分辨率识别失败时会自动换宽度重试。
 
 如果遇到出版社的特殊版式，或者识别结果不理想，可以生成一份自动识别配置，再手动微调坐标：
 
@@ -185,6 +188,7 @@ $env:HYMN_SPLITTER_UPDATE_URL="https://api.github.com/repos/你的账号/你的�
 hymn-splitter/
   hymn_splitter/
     auto_layout.py     自动识别歌谱版式
+    staff_layout.py    五线谱/简谱复合版式识别
     imaging.py         分段、加粗、标题策略和图片输出
     service.py         界面和引擎之间的工作流
     desktop_api.py     桌面界面接口
@@ -237,10 +241,10 @@ powershell -ExecutionPolicy Bypass -File build_windows.ps1
 
 构建结果会生成在 `release/` 目录，包含：
 
-- `GraceHymnSplitter-v0.3.0-setup-win64.exe`（推荐下载）
-- `GraceHymnSplitter-v0.3.0-setup-win64.exe.sha256`
+- `GraceHymnSplitter-v0.3.1-setup-win64.exe`（推荐下载）
+- `GraceHymnSplitter-v0.3.1-setup-win64.exe.sha256`
 
-推送形如 `v0.3.0` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
+推送形如 `v0.3.1` 的 Git 标签后，GitHub Actions 也会自动构建并上传 Release 附件。
 
 ## 开源说明
 

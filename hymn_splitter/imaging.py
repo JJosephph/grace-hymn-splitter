@@ -30,6 +30,21 @@ def _block_lyric_boxes(block: dict[str, Any]) -> list[list[int]]:
     return [block["lyric_row"]]
 
 
+def _block_tail_boxes(block: dict[str, Any]) -> list[list[int]]:
+    return list(block.get("tail_crops", []) or [])
+
+
+def _block_height(block: dict[str, Any]) -> int:
+    """Total vertical space a note + lyric + tail block occupies."""
+    note_box = block["note_crop"]
+    height = note_box[3] - note_box[1]
+    height += sum(
+        _box_height(lyric_box) for lyric_box in _block_lyric_boxes(block)
+    )
+    height += sum(_box_height(tail_box) for tail_box in _block_tail_boxes(block))
+    return height
+
+
 def bold_text_region(
     image: Image.Image,
     strength: int = 1,
@@ -156,6 +171,7 @@ def _paste_block(
     source: Image.Image,
     note_crop_box: list[int],
     lyric_boxes: list[list[int]],
+    tail_boxes: list[list[int]],
     y: int,
     draw: ImageDraw.ImageDraw,
     system: dict[str, Any] | None,
@@ -200,6 +216,13 @@ def _paste_block(
             page.paste(lyric_crop, (0, y))
         y += lyric_crop.height
 
+    for tail_box in tail_boxes:
+        tail_crop = source.crop(_full_width_box(source, tail_box))
+        if bold:
+            tail_crop = bold_text_region(tail_crop, strength=bold_strength)
+        page.paste(tail_crop, (0, y))
+        y += tail_crop.height
+
     return y
 
 
@@ -218,8 +241,23 @@ def _draw_page_label(
     )
     font = ImageFont.truetype(str(font_path), int(label_config.get("font_size", 52)))
     color = _rgb(label_config.get("color", [40, 40, 40]))
+    position = tuple(position)
+    # The full header keeps the original artwork, so give the verse label a
+    # small backing plate instead of letting it collide with printed text.
+    text_box = draw.textbbox(position, label, font=font, anchor=label_config.get("anchor", "mm"))
+    pad = max(4, int(label_config.get("font_size", 52) * 0.12))
+    draw.rounded_rectangle(
+        (
+            text_box[0] - pad,
+            text_box[1] - pad // 2,
+            text_box[2] + pad,
+            text_box[3] + pad // 2,
+        ),
+        radius=pad,
+        fill=_rgb(config.get("page", {}).get("background", [255, 255, 255])),
+    )
     draw.text(
-        tuple(position),
+        position,
         label,
         font=font,
         fill=color,
@@ -364,17 +402,16 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
             note_box = system["note_crop"]
             lyric_box = system["lyric_rows"][verse_index]
             height += (note_box[3] - note_box[1]) + _box_height(lyric_box)
+            height += sum(
+                _box_height(tail_box)
+                for tail_box in _block_tail_boxes(system)
+            )
         if include_chorus and config.get("chorus"):
             if config["systems"]:
                 height += line_gap
             height += max(0, len(config["chorus"]["blocks"]) - 1) * line_gap
             for block in config["chorus"]["blocks"]:
-                note_box = block["note_crop"]
-                height += note_box[3] - note_box[1]
-                height += sum(
-                    _box_height(lyric_box)
-                    for lyric_box in _block_lyric_boxes(block)
-                )
+                height += _block_height(block)
 
         page = Image.new("RGB", (page_width, height), background)
         draw = ImageDraw.Draw(page)
@@ -401,6 +438,7 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
                 source,
                 system["note_crop"],
                 [system["lyric_rows"][verse_index]],
+                _block_tail_boxes(system),
                 y,
                 draw,
                 system,
@@ -418,6 +456,7 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
                     source,
                     block["note_crop"],
                     _block_lyric_boxes(block),
+                    _block_tail_boxes(block),
                     y,
                     draw,
                     None,
@@ -435,12 +474,7 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
         height = page_header_height + bottom_margin
         height += max(0, len(config["chorus"]["blocks"]) - 1) * line_gap
         for block in config["chorus"]["blocks"]:
-            note_box = block["note_crop"]
-            height += note_box[3] - note_box[1]
-            height += sum(
-                _box_height(lyric_box)
-                for lyric_box in _block_lyric_boxes(block)
-            )
+            height += _block_height(block)
 
         page = Image.new("RGB", (page_width, height), background)
         draw = ImageDraw.Draw(page)
@@ -460,6 +494,7 @@ def build_pages(config: dict[str, Any], force_chorus: bool | None = None) -> lis
                 source,
                 block["note_crop"],
                 _block_lyric_boxes(block),
+                _block_tail_boxes(block),
                 y,
                 draw,
                 None,

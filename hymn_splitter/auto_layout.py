@@ -754,12 +754,64 @@ def _make_page_label(width: int, header_bottom: int) -> dict[str, Any]:
         "enabled": True,
         "position": [max(80, int(width * 0.88)), max(50, int(header_bottom * 0.78))],
         "compact_position": [max(80, int(width * 0.93)), max(34, font_size)],
+        "compact_anchor": "rm",
         "font": "C:/Windows/Fonts/msyhbd.ttc",
         "font_size": font_size,
         "compact_font_size": max(28, int(font_size * 0.82)),
         "color": [45, 45, 45],
         "anchor": "rm",
     }
+
+
+def _choose_page_label_position(
+    image: Image.Image,
+    header_bottom: int,
+    *,
+    font_size: int,
+) -> list[int]:
+    """Pick the emptiest right-edge band of the header for the verse label."""
+    gray = image.convert("L")
+    width = gray.width
+    label_height = int(font_size * 1.6)
+    label_width = int(font_size * 3.4)
+    margin = max(16, int(width * 0.03))
+    best: tuple[float, list[int]] | None = None
+    for edge_left in (False, True):
+        edge = margin if edge_left else width - margin
+        for ratio in (0.10, 0.28, 0.45, 0.62, 0.78):
+            center = int(header_bottom * ratio)
+            top = max(0, center - label_height // 2)
+            bottom = min(header_bottom, center + label_height // 2)
+            if bottom - top < label_height * 0.6:
+                continue
+            if edge_left:
+                box = (margin, top, min(width, margin + label_width), bottom)
+            else:
+                box = (max(0, edge - label_width), top, edge, bottom)
+            ink = _ink_ratio(gray, box)
+            if best is None or ink < best[0]:
+                best = (ink, [edge, center])
+    return best[1] if best is not None else [width - margin, int(header_bottom * 0.78)]
+
+
+def _page_label_anchor(position: list[int], width: int) -> str:
+    return "lm" if position[0] < width // 2 else "rm"
+
+
+def _positioned_page_label(
+    image: Image.Image,
+    width: int,
+    header_bottom: int,
+) -> dict[str, Any]:
+    label = _make_page_label(width, header_bottom)
+    position = _choose_page_label_position(
+        image,
+        header_bottom,
+        font_size=int(label["font_size"]),
+    )
+    label["position"] = position
+    label["anchor"] = _page_label_anchor(position, width)
+    return label
 
 
 def _find_content_cutoff(
@@ -1173,7 +1225,7 @@ def _build_auto_config(
             "background": [255, 255, 255],
             "bottom_margin": 50,
         },
-        "page_label": _make_page_label(width, header_bottom),
+        "page_label": _positioned_page_label(image, width, header_bottom),
         "verse_labels": verse_labels,
         "bold_mode": "none",
         "bold_strength": 0,
@@ -1187,35 +1239,66 @@ def _build_auto_config(
     }
 
 
-def detect_layout(
-    source_path: str | Path,
+def _scale_layout(
+    config: dict[str, Any],
     *,
-    song_number: str = "",
-    song_title: str = "",
+    image: Image.Image,
+    source_path: Path,
 ) -> dict[str, Any]:
-    """Detect a common Chinese numbered-score layout from one image.
+    """Map a layout measured on a resized copy back onto the original image."""
+    width_scale = image.width / config["page"]["width"]
+    height_scale = image.height / int(config["_analysis_height"])
 
-    The detector intentionally stays conservative. It looks for repeated
-    groups of lyric lines and attaches the staff immediately above each group.
-    A caller can still use a hand-tuned JSON config when a publisher uses a
-    highly unusual layout.
-    """
-    source_path = Path(source_path).resolve()
-    if not source_path.is_file():
-        raise AutoLayoutError(f"歌谱图片不存在：{source_path}")
-    try:
-        image = ImageOps.exif_transpose(Image.open(source_path)).convert("RGB")
-    except Exception as error:
-        raise AutoLayoutError(f"无法读取歌谱图片：{error}") from error
+    def scale_box(box: list[int]) -> list[int]:
+        if len(box) == 2:
+            return [
+                int(round(box[0] * height_scale)),
+                int(round(box[1] * height_scale)),
+            ]
+        return [
+            int(round(box[0] * width_scale)),
+            int(round(box[1] * height_scale)),
+            int(round(box[2] * width_scale)),
+            int(round(box[3] * height_scale)),
+        ]
 
-    lyric_gray, note_gray, has_separate_note_layer = _separate_color_layers(image)
-    min_ink = max(12, int(image.width * 0.012))
+    config["header_crop"] = scale_box(config["header_crop"])
+    config["page"]["width"] = image.width
+    for system in config["systems"]:
+        system["note_crop"] = scale_box(system["note_crop"])
+        system["lyric_rows"] = [scale_box(row) for row in system["lyric_rows"]]
+    chorus = config.get("chorus")
+    if chorus:
+        for block in chorus["blocks"]:
+            block["note_crop"] = scale_box(block["note_crop"])
+            block["lyric_rows"] = [scale_box(row) for row in block["lyric_rows"]]
+    config["page_label"] = _positioned_page_label(
+        image,
+        image.width,
+        config["header_crop"][3],
+    )
+    config["base_dir"] = str(source_path.parent)
+    config["source"] = str(source_path)
+    config.pop("_analysis_height", None)
+    return config
+
+
+def _run_jianpu_detector(
+    image: Image.Image,
+    source_path: Path,
+    analysis: Image.Image,
+    *,
+    song_number: str,
+    song_title: str,
+) -> dict[str, Any]:
+    lyric_gray, note_gray, has_separate_note_layer = _separate_color_layers(analysis)
+    min_ink = max(12, int(analysis.width * 0.012))
     lyric_raw_runs = _find_runs(_row_counts(lyric_gray), min_ink=min_ink)
     note_raw_runs = _find_runs(_row_counts(note_gray), min_ink=min_ink)
     lyric_raw_runs = _split_tall_lyric_runs(
         lyric_gray,
         lyric_raw_runs,
-        image_width=image.width,
+        image_width=analysis.width,
     )
     lyric_runs = [
         _measure_run(lyric_gray, run)
@@ -1227,12 +1310,126 @@ def detect_layout(
         for run in note_raw_runs
         if run[1] - run[0] + 1 >= 4
     ]
-    return _build_auto_config(
+    config = _build_auto_config(
         source_path,
-        image,
+        analysis,
         lyric_runs,
         note_runs,
         separate_note_layer=has_separate_note_layer,
+        song_number=song_number,
+        song_title=song_title,
+    )
+    if analysis is image:
+        return config
+    config["_analysis_height"] = analysis.height
+    return _scale_layout(config, image=image, source_path=source_path)
+
+
+def _detect_jianpu_layout(
+    image: Image.Image,
+    source_path: Path,
+    *,
+    song_number: str = "",
+    song_title: str = "",
+) -> dict[str, Any]:
+    """Run the numbered-score detector, retrying at normalised widths.
+
+    The original detector was tuned for a particular scan size, so a page that
+    fails at its native resolution often succeeds once the width is normalised.
+    Every attempt is scored by how much of the score it explains, and the most
+    complete layout wins; native resolution breaks ties so established layouts
+    keep their current output.
+    """
+    candidates: list[int] = []
+    if image.width >= 1200:
+        candidates.append(image.width)
+    for width in (1600, 2000, 2400):
+        if width not in candidates and 1600 <= width <= 3400:
+            candidates.append(width)
+
+    best_config: dict[str, Any] | None = None
+    best_score: tuple[int, int, int] | None = None
+    errors: list[str] = []
+    for width in candidates:
+        analysis = image
+        if width != image.width:
+            analysis = image.resize(
+                (width, max(1, round(image.height * width / image.width))),
+                Image.LANCZOS,
+            )
+        try:
+            config = _run_jianpu_detector(
+                image,
+                source_path,
+                analysis,
+                song_number=song_number,
+                song_title=song_title,
+            )
+        except AutoLayoutError as error:
+            errors.append(str(error))
+            continue
+        verse_count = len(config.get("verse_labels", []))
+        counts = [len(system["lyric_rows"]) for system in config["systems"]]
+        if not counts or verse_count < 1:
+            errors.append(f"{width}px 下没有识别到歌词行。")
+            continue
+        exact = sum(1 for count in counts if count == verse_count)
+        clean = 1 if len(counts) >= 2 and exact == len(counts) else 0
+        chorus_rows = sum(
+            len(block.get("lyric_rows", []))
+            for block in (config.get("chorus") or {}).get("blocks", [])
+        )
+        score = (
+            clean,
+            exact * verse_count,
+            sum(counts) + chorus_rows,
+        )
+        if best_score is None or score > best_score:
+            best_score = score
+            best_config = config
+        if clean:
+            break
+    if best_config is not None:
+        return best_config
+    raise AutoLayoutError(
+        errors[-1] if errors else "没有识别到多段歌词。"
+    )
+
+
+def detect_layout(
+    source_path: str | Path,
+    *,
+    song_number: str = "",
+    song_title: str = "",
+) -> dict[str, Any]:
+    """Detect the score layout of one hymn page.
+
+    Pages with five-line staves (optionally combined with jianpu) are parsed
+    by the staff-aware detector.  Plain numbered scores go through the lyric
+    group detector, which now runs on a width-normalised copy so the same
+    thresholds work for phone screenshots and high-resolution scans alike.
+    """
+    source_path = Path(source_path).resolve()
+    if not source_path.is_file():
+        raise AutoLayoutError(f"歌谱图片不存在：{source_path}")
+    try:
+        image = ImageOps.exif_transpose(Image.open(source_path)).convert("RGB")
+    except Exception as error:
+        raise AutoLayoutError(f"无法读取歌谱图片：{error}") from error
+
+    from .staff_layout import detect_staff_layout
+
+    staff_config = detect_staff_layout(
+        image,
+        source_path,
+        song_number=song_number,
+        song_title=song_title,
+    )
+    if staff_config is not None:
+        return staff_config
+    return _detect_jianpu_layout(
+        image,
+        source_path,
         song_number=song_number,
         song_title=song_title,
     )
